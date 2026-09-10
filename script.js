@@ -14,7 +14,19 @@ try {
   }
 } catch (error) {
   currentUser = null;
-}          // { username, phone, email, role }
+}          
+
+function guardarSesion() {
+  if (currentUser) {
+    sessionStorage.setItem(
+      'zonaTotalUsuario',
+      JSON.stringify(currentUser)
+    );
+  }
+}  
+  
+  
+  // { username, phone, email, role }
 
   const PROPIETARIA = {
     username: 'Reyna Anelis',
