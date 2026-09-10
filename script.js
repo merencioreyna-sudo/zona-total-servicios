@@ -5,7 +5,16 @@
   // =============================================
   // 1. ESTADO TEMPORAL EN MEMORIA
   // =============================================
-  let currentUser = null;          // { username, phone, email, role }
+  let currentUser = null;
+
+try {
+  const usuarioGuardado = sessionStorage.getItem('zonaTotalUsuario');
+  if (usuarioGuardado) {
+    currentUser = JSON.parse(usuarioGuardado);
+  }
+} catch (error) {
+  currentUser = null;
+}          // { username, phone, email, role }
 
   const PROPIETARIA = {
     username: 'Reyna Anelis',
