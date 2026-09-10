@@ -969,6 +969,35 @@
     (function() {
       "use strict";
 
+const sesionGuardada = sessionStorage.getItem('zonaTotalUsuario');
+
+if (!sesionGuardada) {
+  window.location.href = 'index.html';
+  return;
+}
+
+let usuarioSesion;
+
+try {
+  usuarioSesion = JSON.parse(sesionGuardada);
+} catch (error) {
+  sessionStorage.removeItem('zonaTotalUsuario');
+  window.location.href = 'index.html';
+  return;
+}
+
+const parametrosSesion = new URLSearchParams(window.location.search);
+const idUrl = parametrosSesion.get('v');
+
+if (
+  usuarioSesion.role !== 'revendedor' ||
+  !usuarioSesion.idVendedor ||
+  usuarioSesion.idVendedor !== idUrl
+) {
+  window.location.href = 'index.html';
+  return;
+}
+
       // --- BACKEND ---
 const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbzaQbpywYXzpL0Db2dKlD1jsPKHjNg_POoq-mtRwkskCVGmR77w1vw9ukSWx072qopW/exec';
 
