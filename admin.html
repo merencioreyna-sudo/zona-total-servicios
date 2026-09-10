@@ -41,19 +41,39 @@
             font-size: 1.4rem;
             color: #0b1e33;
         }
-        .admin-header .brand span {
-            color: #2563eb;
-        }
-        .admin-header .user-badge {
-            background: #f1f5f9;
-            padding: 0.4rem 1.2rem;
-            border-radius: 30px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+       .admin-header .brand span {
+    color: #2563eb;
+}
+
+/* PEGAR AQUÍ */
+.btn-volver-zona {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 1rem;
+    border-radius: 30px;
+    background: #f1f5f9;
+    color: #0b1e33;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-volver-zona:hover {
+    background: #2563eb;
+    color: white;
+}
+
+.admin-header .user-badge {
+    background: #f1f5f9;
+    padding: 0.4rem 1.2rem;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
         /* NAV */
         .nav-tabs {
@@ -371,11 +391,24 @@
 
     <!-- HEADER -->
     <header class="admin-header">
+    <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
         <div class="brand">Zona Total <span>Servicios</span></div>
-        <div class="user-badge">
-            👑 Súper Admin
-        </div>
-    </header>
+
+        <a href="index.html" class="btn-volver-zona">
+            ← Volver a Zona Total
+        </a>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div class="user-badge">
+        👑 Súper Admin
+    </div>
+
+    <button class="btn btn-danger" id="btnCerrarSesionAdmin">
+        Cerrar sesión
+    </button>
+</div>
+</header>
 
     <!-- NAV -->
     <nav class="nav-tabs" id="navTabs">
@@ -2228,6 +2261,13 @@ document.getElementById('refreshRenovaciones').addEventListener('click', async (
 
         // cerrar modal desde window (para onclick)
         window.closeModal = closeModal;
+
+// ----- CERRAR SESIÓN SÚPER ADMIN -----
+document.getElementById('btnCerrarSesionAdmin').addEventListener('click', () => {
+    sessionStorage.removeItem('zonaTotalUsuario');
+    window.location.href = 'index.html';
+});
+
 
         // ----- INICIALIZAR -----
         // adminPanel ya está visible (sin login)
