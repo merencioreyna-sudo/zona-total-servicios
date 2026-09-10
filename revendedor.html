@@ -1365,9 +1365,66 @@ const ID_REVENDEDOR = parametros.get('v');
   }
 }
 
+async function cargarClientesRevendedor() {
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerClientesRevendedor',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudieron cargar los clientes.', 'error');
+      return;
+    }
+
+    const clientes = datos.clientes || [];
+    const tabla = document.getElementById('tablaClientes');
+
+    document.getElementById('cardClientes').textContent = clientes.length;
+
+    if (clientes.length === 0) {
+      tabla.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">
+            <i class="fas fa-user-slash"></i> No hay clientes.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tabla.innerHTML = clientes.map(c => `
+      <tr>
+        <td>${c.idCliente || '—'}</td>
+        <td>${c.usuario || '—'}</td>
+        <td>${c.telefono || '—'}</td>
+        <td>${c.correo || '—'}</td>
+        <td>
+          <span class="badge-estado badge-${c.estado}">
+            ${c.estado || '—'}
+          </span>
+        </td>
+        <td>${c.fechaRegistro || '—'}</td>
+        <td>—</td>
+      </tr>
+    `).join('');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al cargar los clientes.', 'error');
+  }
+}
+
 resetUI();
 navigateTo('inicio');
 cargarDatosRevendedor();
+cargarClientesRevendedor();
+
 
     })();
   </script>
