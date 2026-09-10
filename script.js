@@ -1110,6 +1110,8 @@ try {
   telefonoVendedor: vendedorActual.telefono
 };
 
+guardarSesion();
+
 } catch (error) {
   console.error('Error al registrar cliente:', error);
   formError.textContent = 'No se pudo conectar con el sistema. Inténtalo nuevamente.';
