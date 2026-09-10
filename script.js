@@ -939,6 +939,7 @@ if (datosRevendedor.ok) {
     mercado: datosRevendedor.mercado,
     precioReventaLicencia: datosRevendedor.precioReventaLicencia
   };
+  guardarSesion();
 
   cerrarModal(modalLoginOverlay);
   actualizarHeader();
