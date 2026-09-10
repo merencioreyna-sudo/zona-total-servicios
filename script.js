@@ -1698,9 +1698,14 @@ function actualizarHeader() {
       return;
     }
 
+    if (currentUser.role === 'propietaria') {
+      window.location.href = 'admin.html';
+      return;
+    }
+
     if (currentUser.role === 'revendedor') {
       window.location.href =
-  `revendedor.html?v=${encodeURIComponent(currentUser.idVendedor)}`;
+        `revendedor.html?v=${encodeURIComponent(currentUser.idVendedor)}`;
       return;
     }
 
