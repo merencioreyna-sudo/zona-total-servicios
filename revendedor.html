@@ -1176,30 +1176,103 @@ const ID_REVENDEDOR = parametros.get('v');
       });
 
       // APROBAR VENTA
-      const modalAprobarVenta = document.getElementById('modalAprobarVenta');
-      document.getElementById('modalAprobarVentaCancelar').addEventListener('click', () => {
-        modalAprobarVenta.classList.remove('show');
-      });
-      modalAprobarVenta.addEventListener('click', (e) => {
-        if (e.target === modalAprobarVenta) modalAprobarVenta.classList.remove('show');
-      });
-      document.getElementById('modalAprobarVentaConfirmar').addEventListener('click', () => {
-        showToast('Esta acción requiere conexión con el backend.', 'info');
-        modalAprobarVenta.classList.remove('show');
-      });
+const modalAprobarVenta = document.getElementById('modalAprobarVenta');
+let compraAprobarId = null;
 
-      // RECHAZAR VENTA
-      const modalRechazarVenta = document.getElementById('modalRechazarVenta');
-      document.getElementById('modalRechazarVentaCancelar').addEventListener('click', () => {
-        modalRechazarVenta.classList.remove('show');
-      });
-      modalRechazarVenta.addEventListener('click', (e) => {
-        if (e.target === modalRechazarVenta) modalRechazarVenta.classList.remove('show');
-      });
-      document.getElementById('modalRechazarVentaConfirmar').addEventListener('click', () => {
-        showToast('Esta acción requiere conexión con el backend.', 'info');
-        modalRechazarVenta.classList.remove('show');
-      });
+document.getElementById('modalAprobarVentaCancelar').addEventListener('click', () => {
+  compraAprobarId = null;
+  modalAprobarVenta.classList.remove('show');
+});
+
+modalAprobarVenta.addEventListener('click', (e) => {
+  if (e.target === modalAprobarVenta) {
+    compraAprobarId = null;
+    modalAprobarVenta.classList.remove('show');
+  }
+});
+
+document.getElementById('modalAprobarVentaConfirmar').addEventListener('click', async () => {
+  if (!compraAprobarId) return;
+
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'aprobarCompraRevendedor',
+        idVendedor: ID_REVENDEDOR,
+        idCompra: compraAprobarId
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudo aprobar la compra.', 'error');
+      return;
+    }
+
+    showToast(datos.mensaje || 'Compra aprobada correctamente.', 'success');
+
+    compraAprobarId = null;
+    modalAprobarVenta.classList.remove('show');
+
+    await cargarVentasRevendedor();
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al aprobar la compra.', 'error');
+  }
+});
+
+   // RECHAZAR VENTA
+const modalRechazarVenta = document.getElementById('modalRechazarVenta');
+let compraRechazarId = null;
+
+document.getElementById('modalRechazarVentaCancelar').addEventListener('click', () => {
+  compraRechazarId = null;
+  modalRechazarVenta.classList.remove('show');
+});
+
+modalRechazarVenta.addEventListener('click', (e) => {
+  if (e.target === modalRechazarVenta) {
+    compraRechazarId = null;
+    modalRechazarVenta.classList.remove('show');
+  }
+});
+
+document.getElementById('modalRechazarVentaConfirmar').addEventListener('click', async () => {
+  if (!compraRechazarId) return;
+
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'rechazarCompraRevendedor',
+        idVendedor: ID_REVENDEDOR,
+        idCompra: compraRechazarId
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudo rechazar la compra.', 'error');
+      return;
+    }
+
+    showToast(datos.mensaje || 'Compra rechazada correctamente.', 'success');
+
+    compraRechazarId = null;
+    modalRechazarVenta.classList.remove('show');
+
+    await cargarVentasRevendedor();
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al rechazar la compra.', 'error');
+  }
+});  
+
 
       // --- FUNCIONES PARA ACCIONES (usadas desde botones dinámicos) ---
       window.accionesRevendedor = {
@@ -1224,16 +1297,18 @@ const ID_REVENDEDOR = parametros.get('v');
           msg.textContent = nombre ? `¿Deseas renovar a ${nombre} (${id})?` : `¿Deseas renovar al revendedor ${id}?`;
           modalRenovar.classList.add('show');
         },
-        aprobarVenta: (id) => {
-          const msg = document.getElementById('aprobarVentaMensaje');
-          msg.textContent = `¿Deseas aprobar el pago de la compra ${id}?`;
-          modalAprobarVenta.classList.add('show');
-        },
-        rechazarVenta: (id) => {
-          const msg = document.getElementById('rechazarVentaMensaje');
-          msg.textContent = `¿Deseas rechazar el pago de la compra ${id}?`;
-          modalRechazarVenta.classList.add('show');
-        }
+       aprobarVenta: (id) => {
+  compraAprobarId = id;
+  const msg = document.getElementById('aprobarVentaMensaje');
+  msg.textContent = `¿Deseas aprobar el pago de la compra ${id}?`;
+  modalAprobarVenta.classList.add('show');
+},
+rechazarVenta: (id) => {
+  compraRechazarId = id;
+  const msg = document.getElementById('rechazarVentaMensaje');
+  msg.textContent = `¿Deseas rechazar el pago de la compra ${id}?`;
+  modalRechazarVenta.classList.add('show');
+}
       };
 
       // --- ACTUALIZAR CUENTA (formulario) ---
@@ -1420,11 +1495,91 @@ async function cargarClientesRevendedor() {
   }
 }
 
+
+async function cargarVentasRevendedor() {
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerComprasRevendedor',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudieron cargar las ventas.', 'error');
+      return;
+    }
+
+    const compras = datos.compras || [];
+    const tabla = document.getElementById('tablaVentas');
+
+    document.getElementById('cardVentas').textContent = compras.length;
+
+    if (compras.length === 0) {
+      tabla.innerHTML = `
+        <tr>
+          <td colspan="8" class="empty-state">
+            <i class="fas fa-box-open"></i> No hay ventas.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tabla.innerHTML = compras.map(c => {
+      let acciones = '—';
+
+      if (c.Estado_Pago === 'PENDIENTE') {
+        acciones = `
+          <div class="acciones-cell">
+            <button
+              class="btn btn-success"
+              onclick="accionesRevendedor.aprobarVenta('${c.ID_Compra}')">
+              Aprobar
+            </button>
+
+            <button
+              class="btn btn-danger"
+              onclick="accionesRevendedor.rechazarVenta('${c.ID_Compra}')">
+              Rechazar
+            </button>
+          </div>
+        `;
+      }
+
+      return `
+        <tr>
+          <td>${c.ID_Compra || '—'}</td>
+          <td>${c.ID_Cliente || '—'}</td>
+          <td>${c.Cliente || '—'}</td>
+          <td>${c.Productos || '—'}</td>
+          <td>${c.Total || '—'}</td>
+          <td>
+            <span class="badge-estado badge-${c.Estado_Pago}">
+              ${c.Estado_Pago || '—'}
+            </span>
+          </td>
+          <td>${c.Fecha_Compra || '—'}</td>
+          <td>${acciones}</td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al cargar las ventas.', 'error');
+  }
+}
+
+
 resetUI();
 navigateTo('inicio');
 cargarDatosRevendedor();
 cargarClientesRevendedor();
-
+cargarVentasRevendedor();
 
     })();
   </script>
