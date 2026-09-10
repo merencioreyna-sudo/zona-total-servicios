@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>Panel Revendedor · Zona Total Servicios</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background: #f7f2f0;
+      display: flex;
+      min-height: 100vh;
+      color: #1e1a18;
+    }
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 224px;
+      background: #1c0f0b;
+      color: #ede8e5;
+      display: flex;
+      flex-direction: column;
+      padding: 1.8rem 0.9rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      box-shadow: 3px 0 16px rgba(0,0,0,0.08);
+    }
+    .sidebar-brand {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2.2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid #3d2a24;
+    }
+    .logo-zt {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      background: #b31b1b;
+      color: white;
+      font-weight: 800;
+      font-size: 2rem;
+      border-radius: 18px;
+      letter-spacing: -1px;
+      box-shadow: 0 4px 10px rgba(179, 27, 27, 0.3);
+    }
+    .sidebar-menu {
+      list-style: none;
+      flex: 1;
+      margin-top: 0.2rem;
+    }
+    .sidebar-menu li {
+      margin-bottom: 0.2rem;
+    }
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 12px;
+      color: #ccc2be;
+      text-decoration: none;
+      font-weight: 500;
+      transition: 0.15s;
+      font-size: 0.92rem;
+    }
+    .sidebar-menu a i {
+      width: 1.5rem;
+      font-size: 1.1rem;
+      text-align: center;
+      color: #a0847a;
+    }
+    .sidebar-menu a:hover {
+      background: #2f1d17;
+      color: white;
+    }
+    .sidebar-menu a.active {
+      background: #b31b1b;
+      color: white;
+      box-shadow: inset 4px 0 0 #f25e5e;
+    }
+    .sidebar-menu a.active i {
+      color: white;
+    }
+    .sidebar-footer {
+      border-top: 1px solid #3d2a24;
+      padding-top: 1.2rem;
+      margin-top: 0.5rem;
+    }
+    .sidebar-footer a {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      color: #ede8e5;
+      text-decoration: none;
+      padding: 0.6rem 0.9rem;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .sidebar-footer a i {
+      color: #e35f5f;
+    }
+    .sidebar-footer a:hover {
+      background: #2f1d17;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      margin-left: 224px;
+      flex: 1;
+      padding: 1.8rem 2.2rem;
+      min-height: 100vh;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    /* HEADER */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 0.8rem 1.8rem;
+      border-radius: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      border: 1px solid #f0e8e4;
+    }
+    .top-header .panel-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1c0f0b;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .top-header .panel-title small {
+      font-weight: 400;
+      font-size: 0.85rem;
+      color: #7a6a62;
+      margin-left: 0.3rem;
+    }
+    .top-header .user-badge {
+      display: none;
+      align-items: center;
+      gap: 0.8rem;
+      background: #f5efec;
+      padding: 0.3rem 1.4rem 0.3rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 500;
+      color: #1c0f0b;
+    }
+    .top-header .user-badge.visible {
+      display: flex;
+    }
+    .top-header .user-badge i {
+      font-size: 1.2rem;
+      color: #b31b1b;
+    }
+    .top-header .user-badge .nombre-label {
+      font-weight: 600;
+    }
+
+    .notif-bell {
+      position: relative;
+      cursor: pointer;
+      font-size: 1.4rem;
+      color: #3d2a24;
+      transition: 0.2s;
+    }
+    .notif-bell:hover { color: #b31b1b; }
+    .notif-bell .badge {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      background: #b31b1b;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 30px;
+      min-width: 18px;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* CARDS */
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: white;
+      padding: 1rem 1.2rem 0.9rem;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      border: 1px solid #ede5e1;
+      transition: 0.15s;
+    }
+    .card:hover { border-color: #d4c4bc; }
+    .card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #7a6a62;
+      font-weight: 600;
+    }
+    .card .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-top: 0.3rem;
+      color: #1c0f0b;
+    }
+    .card .sub {
+      font-size: 0.75rem;
+      color: #5f4e46;
+      margin-top: 0.1rem;
+    }
+    .card .icon-circle {
+      float: right;
+      background: #fce8e3;
+      padding: 0.4rem;
+      border-radius: 40px;
+      color: #b31b1b;
+    }
+
+    /* SECCIONES */
+    .section-panel {
+      background: white;
+      border-radius: 28px;
+      padding: 1.5rem 1.8rem 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+      border: 1px solid #ede5e1;
+      display: none;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .section-panel.active-section {
+      display: block;
+    }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1c0f0b;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .section-title i {
+      color: #b31b1b;
+    }
+
+    /* TABLAS */
+    .table-responsive {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      margin-top: 0.3rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      border-spacing: 0;
+    }
+    th {
+      text-align: left;
+      padding: 0.7rem 0.7rem;
+      background: #faf5f2;
+      color: #2d1f1a;
+      font-weight: 600;
+      border-bottom: 2px solid #e2d5cf;
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.7rem 0.7rem;
+      border-bottom: 1px solid #eee5e0;
+      vertical-align: middle;
+    }
+
+    /* Tablas anchas */
+    .tabla-revendedores {
+      min-width: 1400px;
+    }
+    .tabla-revendedores th,
+    .tabla-revendedores td {
+      padding: 0.85rem 1.1rem;
+      white-space: nowrap;
+    }
+    .tabla-licencias {
+      min-width: 1250px;
+    }
+    .tabla-licencias th,
+    .tabla-licencias td {
+      padding: 0.85rem 1.1rem;
+      white-space: nowrap;
+    }
+    .tabla-renovaciones {
+      min-width: 1150px;
+    }
+    .tabla-renovaciones th,
+    .tabla-renovaciones td {
+      padding: 0.85rem 1.1rem;
+      white-space: nowrap;
+    }
+    .tabla-clientes {
+      min-width: 950px;
+    }
+    .tabla-clientes th,
+    .tabla-clientes td {
+      padding: 0.85rem 1.1rem;
+      white-space: nowrap;
+    }
+    .tabla-ventas {
+      min-width: 1100px;
+    }
+    .tabla-ventas th,
+    .tabla-ventas td {
+      padding: 0.85rem 1.1rem;
+      white-space: nowrap;
+    }
+
+    .badge-estado {
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .badge-ACTIVO { background: #e0f2e0; color: #1f6b3b; }
+    .badge-INACTIVO { background: #fce4e0; color: #a62b1a; }
+    .badge-PENDIENTE { background: #fcf1d6; color: #8f6a1f; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.9rem;
+      border-radius: 40px;
+      border: none;
+      font-weight: 500;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: 0.15s;
+      background: #f0e8e4;
+      color: #1c0f0b;
+    }
+    .btn-primary { background: #b31b1b; color: white; }
+    .btn-primary:hover { background: #9e1616; }
+    .btn-success { background: #1f8b4a; color: white; }
+    .btn-success:hover { background: #187a3e; }
+    .btn-danger { background: #b31b1b; color: white; }
+    .btn-danger:hover { background: #9e1616; }
+    .btn-warning { background: #d6852a; color: white; }
+    .btn-warning:hover { background: #c07422; }
+    .btn-outline { background: transparent; border: 1px solid #d4c4bc; }
+    .btn-outline:hover { background: #f5efec; }
+
+    .acciones-cell {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 2.2rem 1rem;
+      color: #7a6a62;
+    }
+    .empty-state i {
+      font-size: 2.2rem;
+      color: #d4c4bc;
+      margin-bottom: 0.4rem;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 15, 11, 0.5);
+      backdrop-filter: blur(3px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.2s;
+      padding: 1rem;
+    }
+    .modal-overlay.show {
+      visibility: visible;
+      opacity: 1;
+    }
+    .modal-box {
+      background: white;
+      max-width: 480px;
+      width: 100%;
+      border-radius: 28px;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      transform: scale(0.95);
+      transition: 0.2s;
+    }
+    .modal-overlay.show .modal-box { transform: scale(1); }
+    .modal-box h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.4rem;
+      color: #1c0f0b;
+    }
+    .modal-box p { color: #5f4e46; margin-bottom: 1.2rem; }
+    .modal-box label {
+      display: block;
+      font-weight: 500;
+      margin: 0.8rem 0 0.2rem;
+      font-size: 0.9rem;
+    }
+    .modal-box input, .modal-box textarea {
+      width: 100%;
+      padding: 0.6rem 1rem;
+      border: 1px solid #d4c4bc;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      background: #fcf9f7;
+      transition: 0.15s;
+    }
+    .modal-box input:focus, .modal-box textarea:focus {
+      outline: none;
+      border-color: #b31b1b;
+      box-shadow: 0 0 0 3px rgba(179, 27, 27, 0.15);
+    }
+    .modal-box textarea { min-height: 70px; border-radius: 16px; }
+    .modal-actions {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: flex-end;
+      margin-top: 1.6rem;
+    }
+
+    /* TOAST */
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .toast {
+      background: #1c0f0b;
+      color: white;
+      padding: 0.7rem 1.6rem;
+      border-radius: 60px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      font-weight: 500;
+      animation: slideUp 0.25s ease;
+      max-width: 340px;
+    }
+    .toast.success { background: #1f8b4a; }
+    .toast.error { background: #b31b1b; }
+    .toast.warning { background: #d6852a; }
+    .toast.info { background: #2d3a5e; }
+
+    @keyframes slideUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* RESPONSIVE */
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      color: #1c0f0b;
+      cursor: pointer;
+    }
+    @media (max-width: 860px) {
+      .sidebar {
+        transform: translateX(-100%);
+        width: 240px;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main-content {
+        margin-left: 0;
+        padding: 1rem 0.8rem;
+      }
+      .hamburger { display: block; }
+      .top-header { padding: 0.6rem 1rem; }
+      .dashboard-cards {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+      .section-panel { padding: 1rem; }
+      .tabla-revendedores th,
+      .tabla-revendedores td,
+      .tabla-licencias th,
+      .tabla-licencias td,
+      .tabla-renovaciones th,
+      .tabla-renovaciones td,
+      .tabla-clientes th,
+      .tabla-clientes td,
+      .tabla-ventas th,
+      .tabla-ventas td {
+        padding: 0.6rem 0.7rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* MISC */
+    .flex { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+    .text-muted { color: #7a6a62; font-size: 0.85rem; }
+    .link-copy { background: #f5efec; padding: 0.3rem 1rem; border-radius: 40px; word-break: break-all; color: #5f4e46; }
+    .resumen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px,1fr));
+      gap: 1rem;
+      background: #faf5f2;
+      padding: 1.2rem;
+      border-radius: 20px;
+    }
+    .resumen-item { border-left: 3px solid #b31b1b; padding-left: 0.8rem; }
+    .resumen-item .label { font-size: 0.72rem; text-transform: uppercase; color: #5f4e46; }
+    .resumen-item .number { font-weight: 700; font-size: 1.1rem; color: #1c0f0b; }
+
+    .section-panel { display: none; }
+    .section-panel.active-section { display: block; }
+
+    /* FORMULARIO MI CUENTA */
+    .form-cuenta {
+      max-width: 820px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem 1.8rem;
+      background: #fcf9f7;
+      padding: 1.8rem;
+      border-radius: 28px;
+      border: 1px solid #ede5e1;
+    }
+    .form-cuenta .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .form-cuenta .campo label {
+      font-weight: 500;
+      font-size: 0.8rem;
+      color: #3d2a24;
+      letter-spacing: 0.2px;
+    }
+    .form-cuenta .campo input {
+      padding: 0.6rem 1rem;
+      border: 1px solid #d4c4bc;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      background: white;
+      transition: 0.15s;
+      width: 100%;
+    }
+    .form-cuenta .campo input:focus {
+      outline: none;
+      border-color: #b31b1b;
+      box-shadow: 0 0 0 3px rgba(179,27,27,0.12);
+    }
+    .form-cuenta .campo input:disabled {
+      background: #f0e8e4;
+      color: #5f4e46;
+    }
+    .form-cuenta .campo-full {
+      grid-column: 1 / -1;
+    }
+    .form-cuenta .campo .valor-fijo {
+      padding: 0.5rem 1rem;
+      background: #f0e8e4;
+      border-radius: 30px;
+      color: #1c0f0b;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+    .form-cuenta .campo .valor-fijo small {
+      font-weight: 400;
+      color: #5f4e46;
+    }
+    .form-cuenta .btn-actualizar {
+      grid-column: 1 / -1;
+      justify-self: end;
+      margin-top: 0.6rem;
+    }
+    @media (max-width: 600px) {
+      .form-cuenta {
+        grid-template-columns: 1fr;
+        padding: 1.2rem;
+        max-width: 100%;
+      }
+      .form-cuenta .campo-full { grid-column: 1; }
+      .form-cuenta .btn-actualizar { justify-self: stretch; }
+    }
+
+    /* Dashboard info grid */
+    .dash-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.8rem 1.5rem;
+      background: #faf5f2;
+      border-radius: 20px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+    }
+    .dash-info-grid .item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+    .dash-info-grid .item .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: #7a6a62;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .dash-info-grid .item .value {
+      font-weight: 600;
+      color: #1c0f0b;
+      font-size: 0.95rem;
+    }
+    .dash-info-grid .item .value .badge-estado {
+      font-size: 0.7rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-zt">ZT</div>
+    </div>
+    <ul class="sidebar-menu">
+      <li><a href="#" class="active" data-section="inicio"><i class="fas fa-home"></i> Inicio</a></li>
+      <li><a href="#" data-section="clientes"><i class="fas fa-users"></i> Mis clientes</a></li>
+      <li><a href="#" data-section="ventas"><i class="fas fa-shopping-cart"></i> Ventas</a></li>
+      <li><a href="#" data-section="revendedores"><i class="fas fa-user-plus"></i> Mis revendedores</a></li>
+      <li><a href="#" data-section="licencias"><i class="fas fa-certificate"></i> Licencias revendidas</a></li>
+      <li><a href="#" data-section="renovaciones"><i class="fas fa-calendar-check"></i> Renovaciones</a></li>
+      <li><a href="#" data-section="enlace"><i class="fas fa-link"></i> Mi enlace</a></li>
+      <li><a href="#" data-section="notificaciones"><i class="fas fa-bell"></i> Notificaciones</a></li>
+      <li><a href="#" data-section="cuenta"><i class="fas fa-user-cog"></i> Mi cuenta</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main-content" id="mainContent">
+    <header class="top-header">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+        <div class="panel-title">
+          Panel Revendedor
+          <small>Zona Total Servicios</small>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 1.2rem;">
+        <span class="notif-bell" id="notifBell">
+          <i class="fas fa-bell"></i>
+          <span class="badge" id="notifCounter" style="display: none;">0</span>
+        </span>
+        <div class="user-badge" id="userBadge">
+          <i class="fas fa-user-circle"></i>
+          <span class="nombre-label" id="headerNombre"></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- INICIO -->
+    <section id="seccion-inicio" class="section-panel active-section">
+      <div class="section-title"><i class="fas fa-chart-pie"></i> Dashboard</div>
+      <div class="dashboard-cards" id="dashboardCards">
+        <div class="card"><span class="label">Clientes propios</span><div class="value" id="cardClientes">0</div></div>
+        <div class="card"><span class="label">Revendedores directos</span><div class="value" id="cardRevendedores">0</div></div>
+        <div class="card"><span class="label">Ventas (clientes)</span><div class="value" id="cardVentas">0</div></div>
+        <div class="card"><span class="label">Licencias revendidas</span><div class="value" id="cardLicencias">0</div></div>
+        <div class="card"><span class="label">Renovaciones</span><div class="value" id="cardRenovaciones">0</div></div>
+        <div class="card"><span class="label">Importe PROPIETARIA (10% reventas)</span><div class="value" id="cardImportePropietaria">0</div></div>
+      </div>
+      <div style="margin-top: 1.2rem;">
+        <div class="section-title" style="font-size:1rem;"><i class="fas fa-coins"></i> Resumen financiero</div>
+        <div class="resumen-grid" id="resumenFinanciero">
+          <div class="resumen-item"><span class="label">Ventas clientes (100% revendedor)</span><div class="number" id="resVentasClientes">0</div></div>
+          <div class="resumen-item"><span class="label">Renovaciones directas cobradas (100%)</span><div class="number" id="resRenovacionesCobradas">0</div></div>
+          <div class="resumen-item"><span class="label">Reventas de licencias</span><div class="number" id="resReventas">0</div></div>
+          <div class="resumen-item"><span class="label">10% PROPIETARIA (reventas)</span><div class="number" id="resPropietaria">0</div></div>
+        </div>
+      </div>
+      <div class="dash-info-grid">
+        <div class="item"><span class="label">ID</span><span class="value" id="dashId">—</span></div>
+        <div class="item"><span class="label">Usuario</span><span class="value" id="dashUsuario">—</span></div>
+        <div class="item"><span class="label">Estado</span><span class="value" id="dashEstado"><span class="badge-estado">—</span></span></div>
+        <div class="item"><span class="label">Mercado</span><span class="value" id="dashMercado">—</span></div>
+        <div class="item"><span class="label">Fecha Inicio</span><span class="value" id="dashInicio">—</span></div>
+        <div class="item"><span class="label">Fecha Fin</span><span class="value" id="dashFin">—</span></div>
+      </div>
+    </section>
+
+    <!-- MIS CLIENTES -->
+    <section id="seccion-clientes" class="section-panel">
+      <div class="section-title"><i class="fas fa-address-book"></i> Mis clientes</div>
+      <div class="table-responsive">
+        <table class="tabla-clientes">
+          <thead><tr><th>ID Cliente</th><th>Usuario</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Registro</th><th>Compras</th></tr></thead>
+          <tbody id="tablaClientes"><tr><td colspan="7" class="empty-state"><i class="fas fa-user-slash"></i> No hay clientes.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VENTAS -->
+    <section id="seccion-ventas" class="section-panel">
+      <div class="section-title"><i class="fas fa-hand-holding-usd"></i> Ventas de clientes</div>
+      <div class="table-responsive">
+        <table class="tabla-ventas">
+          <thead><tr><th>ID Compra</th><th>ID Cliente</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
+          <tbody id="tablaVentas"><tr><td colspan="8" class="empty-state"><i class="fas fa-box-open"></i> No hay ventas.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MIS REVENDEDORES -->
+    <section id="seccion-revendedores" class="section-panel">
+      <div class="section-title"><i class="fas fa-user-tie"></i> Mis revendedores directos</div>
+      <div class="table-responsive">
+        <table class="tabla-revendedores">
+          <thead><tr><th>ID Vendedor</th><th>Usuario</th><th>Teléfono</th><th>Correo</th><th>Mercado</th><th>Estado</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Precio reventa</th><th>Acciones</th></tr></thead>
+          <tbody id="tablaRevendedores"><tr><td colspan="10" class="empty-state"><i class="fas fa-users-slash"></i> No hay revendedores directos.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- LICENCIAS REVENDIDAS -->
+    <section id="seccion-licencias" class="section-panel">
+      <div class="section-title"><i class="fas fa-file-contract"></i> Licencias revendidas</div>
+      <div class="table-responsive">
+        <table class="tabla-licencias">
+          <thead><tr><th>ID Reventa</th><th>Nuevo revendedor</th><th>Mercado</th><th>Precio oficial</th><th>Precio real cobrado</th><th>% Propietaria</th><th>Importe Prop.</th><th>Estado pago</th><th>Fecha</th></tr></thead>
+          <tbody id="tablaLicencias"><tr><td colspan="9" class="empty-state"><i class="fas fa-file-invoice"></i> No hay licencias revendidas.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- RENOVACIONES -->
+    <section id="seccion-renovaciones" class="section-panel">
+      <div class="section-title"><i class="fas fa-sync-alt"></i> Renovaciones</div>
+      <div class="table-responsive">
+        <table class="tabla-renovaciones">
+          <thead><tr><th>ID Renovación</th><th>ID Revendedor</th><th>Revendedor</th><th>Mercado</th><th>Importe</th><th>Fecha pago</th><th>Fecha anterior fin</th><th>Nueva Fecha Fin</th><th>Estado</th></tr></thead>
+          <tbody id="tablaRenovaciones"><tr><td colspan="9" class="empty-state"><i class="fas fa-calendar-times"></i> No hay renovaciones.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MI ENLACE -->
+    <section id="seccion-enlace" class="section-panel">
+      <div class="section-title"><i class="fas fa-link"></i> Mi enlace de captación</div>
+      <div style="background:#faf5f2; border-radius:20px; padding:1.8rem;">
+        <p><strong>ID:</strong> <span id="enlaceId">—</span> · <strong>Nombre:</strong> <span id="enlaceNombre">—</span></p>
+        <div class="flex" style="margin:1rem 0;">
+          <span class="link-copy" id="enlaceUrl">—</span>
+          <button class="btn btn-primary" id="copiarEnlaceBtn"><i class="fas fa-copy"></i> Copiar</button>
+        </div>
+        <p class="text-muted">Comparte este enlace para que nuevos revendedores se registren bajo tu referido.</p>
+      </div>
+    </section>
+
+    <!-- NOTIFICACIONES -->
+    <section id="seccion-notificaciones" class="section-panel">
+      <div class="section-title"><i class="fas fa-bell"></i> Notificaciones</div>
+      <div id="notificacionesList" style="display:flex; flex-direction:column; gap:0.6rem;">
+        <div class="empty-state"><i class="fas fa-inbox"></i> No hay notificaciones.</div>
+      </div>
+    </section>
+
+    <!-- MI CUENTA -->
+    <section id="seccion-cuenta" class="section-panel">
+      <div class="section-title"><i class="fas fa-id-card"></i> Mi cuenta</div>
+      <form id="formCuenta" class="form-cuenta">
+        <div class="campo">
+          <label>ID Vendedor</label>
+          <div class="valor-fijo" id="cuentaId">—</div>
+        </div>
+        <div class="campo">
+          <label>Referido por</label>
+          <div class="valor-fijo" id="cuentaReferido">—</div>
+        </div>
+        <div class="campo">
+          <label>Mercado</label>
+          <div class="valor-fijo" id="cuentaMercado">—</div>
+        </div>
+        <div class="campo">
+          <label>Estado</label>
+          <div class="valor-fijo"><span id="cuentaEstado" class="badge-estado">—</span></div>
+        </div>
+        <div class="campo">
+          <label>Fecha Inicio</label>
+          <div class="valor-fijo" id="cuentaInicio">—</div>
+        </div>
+        <div class="campo">
+          <label>Fecha Fin</label>
+          <div class="valor-fijo" id="cuentaFin">—</div>
+        </div>
+
+        <div class="campo campo-full">
+          <label>Nombre / Usuario</label>
+          <input type="text" id="editNombre" placeholder="Nombre">
+        </div>
+        <div class="campo campo-full">
+          <label>Teléfono</label>
+          <input type="text" id="editTelefono" placeholder="Teléfono">
+        </div>
+        <div class="campo campo-full">
+          <label>Correo</label>
+          <input type="email" id="editCorreo" placeholder="Correo">
+        </div>
+        <div class="campo campo-full">
+          <label>Nueva contraseña (dejar vacío para no cambiar)</label>
+          <input type="password" id="editPassword" placeholder="Nueva contraseña">
+        </div>
+        <div class="btn-actualizar">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Actualizar datos</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- MODAL CERRAR SESIÓN -->
+  <div class="modal-overlay" id="modalLogout">
+    <div class="modal-box">
+      <h3><i class="fas fa-sign-out-alt" style="color:#b31b1b;"></i> Cerrar sesión</h3>
+      <p>¿Seguro que deseas cerrar sesión?</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modalLogoutCancelar">Cancelar</button>
+        <button class="btn btn-danger" id="modalLogoutConfirmar">Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ACTIVAR -->
+  <div class="modal-overlay" id="modalActivar">
+    <div class="modal-box">
+      <h3><i class="fas fa-user-check" style="color:#1f8b4a;"></i> Activar revendedor</h3>
+      <p id="activarMensaje">¿Deseas activar este revendedor?</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modalActivarCancelar">Cancelar</button>
+        <button class="btn btn-success" id="modalActivarConfirmar">Activar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RENOVAR -->
+  <div class="modal-overlay" id="modalRenovar">
+    <div class="modal-box">
+      <h3><i class="fas fa-sync-alt" style="color:#d6852a;"></i> Renovar revendedor</h3>
+      <p id="renovarMensaje">¿Deseas renovar este revendedor?</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modalRenovarCancelar">Cancelar</button>
+        <button class="btn btn-warning" id="modalRenovarConfirmar">Renovar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DESACTIVACIÓN NORMAL -->
+  <div class="modal-overlay" id="modalDesactivarNormal">
+    <div class="modal-box">
+      <h3><i class="fas fa-user-slash" style="color:#b31b1b;"></i> Desactivar revendedor</h3>
+      <p id="desactivarNormalMensaje">¿Deseas desactivar este revendedor?</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modalDesactivarNormalCancelar">Cancelar</button>
+        <button class="btn btn-danger" id="modalDesactivarNormalConfirmar">Desactivar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DESACTIVACIÓN ANTICIPADA -->
+  <div class="modal-overlay" id="modalDesactivacion">
+    <div class="modal-box">
+      <h3><i class="fas fa-exclamation-triangle" style="color:#b31b1b;"></i> Solicitar desactivación anticipada</h3>
+      <p>El revendedor tiene Fecha_Fin en el futuro. Debes indicar el motivo para que PROPIETARIA evalúe la solicitud.</p>
+      <label>ID del revendedor objetivo</label>
+      <input type="text" id="modalDesactivarId" readonly>
+      <label>Motivo de desactivación</label>
+      <textarea id="modalDesactivarMotivo" placeholder="Escribe el motivo de la solicitud"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modalDesactivarCancelar">Cancelar</button>
+        <button class="btn btn-danger" id="modalDesactivarConfirmar"><i class="fas fa-paper-plane"></i> Enviar solicitud</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL APROBAR VENTA -->
+  <div class="modal-overlay" id="modalAprobarVenta">
+    <div class="modal-box">
+      <h3><i class="fas fa-check-circle" style="color:#1f8b4a;"></i> Aprobar pago</h3>
+      <p id="aprobarVentaMensaje">¿Deseas aprobar este pago?</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modalAprobarVentaCancelar">Cancelar</button>
+        <button class="btn btn-success" id="modalAprobarVentaConfirmar">Aprobar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RECHAZAR VENTA -->
+  <div class="modal-overlay" id="modalRechazarVenta">
+    <div class="modal-box">
+      <h3><i class="fas fa-times-circle" style="color:#b31b1b;"></i> Rechazar pago</h3>
+      <p id="rechazarVentaMensaje">¿Deseas rechazar este pago?</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modalRechazarVentaCancelar">Cancelar</button>
+        <button class="btn btn-danger" id="modalRechazarVentaConfirmar">Rechazar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    (function() {
+      "use strict";
+
+      // --- BACKEND ---
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbzaQbpywYXzpL0Db2dKlD1jsPKHjNg_POoq-mtRwkskCVGmR77w1vw9ukSWx072qopW/exec';
+
+
+// --- REVENDEDOR QUE ABRIÓ EL PANEL ---
+const parametros = new URLSearchParams(window.location.search);
+const ID_REVENDEDOR = parametros.get('v');
+
+      // --- ELEMENTOS DOM ---
+      const sidebar = document.getElementById('sidebar');
+      const hamburger = document.getElementById('hamburgerBtn');
+      const menuLinks = document.querySelectorAll('.sidebar-menu a');
+      const sections = document.querySelectorAll('.section-panel');
+      const headerNombre = document.getElementById('headerNombre');
+      const userBadge = document.getElementById('userBadge');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const notifBell = document.getElementById('notifBell');
+      const notifCounter = document.getElementById('notifCounter');
+
+      // --- TOAST ---
+      function showToast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.textContent = msg;
+        container.appendChild(t);
+        setTimeout(() => { t.remove(); }, 4000);
+      }
+
+      // --- NAVEGACIÓN ---
+      function navigateTo(sectionId) {
+        sections.forEach(sec => sec.classList.remove('active-section'));
+        const target = document.getElementById(`seccion-${sectionId}`);
+        if (target) target.classList.add('active-section');
+        menuLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.dataset.section === sectionId) link.classList.add('active');
+        });
+        sidebar.classList.remove('open');
+      }
+
+      menuLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const sec = link.dataset.section;
+          if (sec) navigateTo(sec);
+        });
+      });
+
+      hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+      });
+
+      // --- CERRAR SESIÓN (MODAL) ---
+      const modalLogout = document.getElementById('modalLogout');
+      document.getElementById('modalLogoutCancelar').addEventListener('click', () => {
+        modalLogout.classList.remove('show');
+      });
+      modalLogout.addEventListener('click', (e) => {
+        if (e.target === modalLogout) modalLogout.classList.remove('show');
+      });
+      document.getElementById('modalLogoutConfirmar').addEventListener('click', () => {
+        // REQUIERE INTEGRACIÓN CON SESIÓN REAL
+        showToast('Esta acción requiere conexión con el backend.', 'info');
+        modalLogout.classList.remove('show');
+      });
+
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modalLogout.classList.add('show');
+      });
+
+      // --- NOTIFICACIONES BELL ---
+      notifBell.addEventListener('click', () => {
+        navigateTo('notificaciones');
+      });
+
+      // --- COPIAR ENLACE ---
+      document.getElementById('copiarEnlaceBtn').addEventListener('click', () => {
+        const url = document.getElementById('enlaceUrl').textContent;
+        if (!url || url === '—') {
+          showToast('El enlace todavía no está disponible.', 'warning');
+          return;
+        }
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(() => {
+            showToast('Enlace copiado al portapapeles', 'success');
+          }).catch(() => {
+            showToast('Error al copiar', 'error');
+          });
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = url;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          showToast('Enlace copiado', 'success');
+        }
+      });
+
+      // --- MODALES DE ACCIONES ---
+      // ACTIVAR
+      const modalActivar = document.getElementById('modalActivar');
+      document.getElementById('modalActivarCancelar').addEventListener('click', () => {
+        modalActivar.classList.remove('show');
+      });
+      modalActivar.addEventListener('click', (e) => {
+        if (e.target === modalActivar) modalActivar.classList.remove('show');
+      });
+      document.getElementById('modalActivarConfirmar').addEventListener('click', () => {
+        // REQUIERE ENDPOINT BACKEND
+        showToast('Esta acción requiere conexión con el backend.', 'info');
+        modalActivar.classList.remove('show');
+      });
+
+      // RENOVAR
+      const modalRenovar = document.getElementById('modalRenovar');
+      document.getElementById('modalRenovarCancelar').addEventListener('click', () => {
+        modalRenovar.classList.remove('show');
+      });
+      modalRenovar.addEventListener('click', (e) => {
+        if (e.target === modalRenovar) modalRenovar.classList.remove('show');
+      });
+      document.getElementById('modalRenovarConfirmar').addEventListener('click', () => {
+        showToast('Esta acción requiere conexión con el backend.', 'info');
+        modalRenovar.classList.remove('show');
+      });
+
+      // DESACTIVACIÓN NORMAL
+      const modalDesactivarNormal = document.getElementById('modalDesactivarNormal');
+      document.getElementById('modalDesactivarNormalCancelar').addEventListener('click', () => {
+        modalDesactivarNormal.classList.remove('show');
+      });
+      modalDesactivarNormal.addEventListener('click', (e) => {
+        if (e.target === modalDesactivarNormal) modalDesactivarNormal.classList.remove('show');
+      });
+      document.getElementById('modalDesactivarNormalConfirmar').addEventListener('click', () => {
+        showToast('Esta acción requiere conexión con el backend.', 'info');
+        modalDesactivarNormal.classList.remove('show');
+      });
+
+      // DESACTIVACIÓN ANTICIPADA
+      const modalDesac = document.getElementById('modalDesactivacion');
+      const modalDesacId = document.getElementById('modalDesactivarId');
+      const modalDesacMotivo = document.getElementById('modalDesactivarMotivo');
+      let targetRevId = null;
+
+      function openDesactivarModal(revId) {
+        targetRevId = revId;
+        modalDesacId.value = revId || '';
+        modalDesacMotivo.value = '';
+        modalDesac.classList.add('show');
+      }
+
+      document.getElementById('modalDesactivarCancelar').addEventListener('click', () => {
+        modalDesac.classList.remove('show');
+        targetRevId = null;
+      });
+      modalDesac.addEventListener('click', (e) => {
+        if (e.target === modalDesac) {
+          modalDesac.classList.remove('show');
+          targetRevId = null;
+        }
+      });
+      document.getElementById('modalDesactivarConfirmar').addEventListener('click', () => {
+        const motivo = modalDesacMotivo.value.trim();
+        if (!motivo) {
+          showToast('Debes escribir un motivo.', 'error');
+          return;
+        }
+        // REQUIERE ENDPOINT BACKEND: solicitar desactivación anticipada
+        showToast('Esta acción requiere conexión con el backend.', 'info');
+        modalDesac.classList.remove('show');
+        targetRevId = null;
+      });
+
+      // APROBAR VENTA
+      const modalAprobarVenta = document.getElementById('modalAprobarVenta');
+      document.getElementById('modalAprobarVentaCancelar').addEventListener('click', () => {
+        modalAprobarVenta.classList.remove('show');
+      });
+      modalAprobarVenta.addEventListener('click', (e) => {
+        if (e.target === modalAprobarVenta) modalAprobarVenta.classList.remove('show');
+      });
+      document.getElementById('modalAprobarVentaConfirmar').addEventListener('click', () => {
+        showToast('Esta acción requiere conexión con el backend.', 'info');
+        modalAprobarVenta.classList.remove('show');
+      });
+
+      // RECHAZAR VENTA
+      const modalRechazarVenta = document.getElementById('modalRechazarVenta');
+      document.getElementById('modalRechazarVentaCancelar').addEventListener('click', () => {
+        modalRechazarVenta.classList.remove('show');
+      });
+      modalRechazarVenta.addEventListener('click', (e) => {
+        if (e.target === modalRechazarVenta) modalRechazarVenta.classList.remove('show');
+      });
+      document.getElementById('modalRechazarVentaConfirmar').addEventListener('click', () => {
+        showToast('Esta acción requiere conexión con el backend.', 'info');
+        modalRechazarVenta.classList.remove('show');
+      });
+
+      // --- FUNCIONES PARA ACCIONES (usadas desde botones dinámicos) ---
+      window.accionesRevendedor = {
+        activar: (id, nombre) => {
+          const msg = document.getElementById('activarMensaje');
+          msg.textContent = nombre ? `¿Deseas activar a ${nombre} (${id})?` : `¿Deseas activar al revendedor ${id}?`;
+          modalActivar.classList.add('show');
+        },
+        desactivar: (id, nombre, fechaFin) => {
+          const hoy = new Date();
+          const fin = new Date(fechaFin);
+          if (fin > hoy) {
+            openDesactivarModal(id);
+          } else {
+            const msg = document.getElementById('desactivarNormalMensaje');
+            msg.textContent = nombre ? `¿Deseas desactivar a ${nombre} (${id})?` : `¿Deseas desactivar al revendedor ${id}?`;
+            modalDesactivarNormal.classList.add('show');
+          }
+        },
+        renovar: (id, nombre) => {
+          const msg = document.getElementById('renovarMensaje');
+          msg.textContent = nombre ? `¿Deseas renovar a ${nombre} (${id})?` : `¿Deseas renovar al revendedor ${id}?`;
+          modalRenovar.classList.add('show');
+        },
+        aprobarVenta: (id) => {
+          const msg = document.getElementById('aprobarVentaMensaje');
+          msg.textContent = `¿Deseas aprobar el pago de la compra ${id}?`;
+          modalAprobarVenta.classList.add('show');
+        },
+        rechazarVenta: (id) => {
+          const msg = document.getElementById('rechazarVentaMensaje');
+          msg.textContent = `¿Deseas rechazar el pago de la compra ${id}?`;
+          modalRechazarVenta.classList.add('show');
+        }
+      };
+
+      // --- ACTUALIZAR CUENTA (formulario) ---
+      document.getElementById('formCuenta').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('editNombre').value.trim();
+        const telefono = document.getElementById('editTelefono').value.trim();
+        const correo = document.getElementById('editCorreo').value.trim();
+        const pass = document.getElementById('editPassword').value.trim();
+        if (!nombre || !telefono || !correo) {
+          showToast('Nombre, teléfono y correo son obligatorios.', 'error');
+          return;
+        }
+        // REQUIERE ENDPOINT BACKEND: actualizar datos personales
+        showToast('Esta acción requiere conexión con el backend.', 'info');
+      });
+
+      // --- INICIALIZAR (todo neutro) ---
+      function resetUI() {
+        // Cabecera: ocultar badge de usuario
+        headerNombre.textContent = '';
+        userBadge.classList.remove('visible');
+
+        document.getElementById('dashId').textContent = '—';
+        document.getElementById('dashUsuario').textContent = '—';
+        const dashEstado = document.getElementById('dashEstado');
+        dashEstado.innerHTML = '<span class="badge-estado">—</span>';
+        document.getElementById('dashMercado').textContent = '—';
+        document.getElementById('dashInicio').textContent = '—';
+        document.getElementById('dashFin').textContent = '—';
+        document.getElementById('enlaceId').textContent = '—';
+        document.getElementById('enlaceNombre').textContent = '—';
+        document.getElementById('enlaceUrl').textContent = '—';
+        document.getElementById('cuentaId').textContent = '—';
+        document.getElementById('cuentaReferido').textContent = '—';
+        document.getElementById('cuentaMercado').textContent = '—';
+        document.getElementById('cuentaEstado').textContent = '—';
+        document.getElementById('cuentaEstado').className = 'badge-estado';
+        document.getElementById('cuentaInicio').textContent = '—';
+        document.getElementById('cuentaFin').textContent = '—';
+        document.getElementById('editNombre').value = '';
+        document.getElementById('editTelefono').value = '';
+        document.getElementById('editCorreo').value = '';
+        document.getElementById('editPassword').value = '';
+        // Tarjetas
+        document.getElementById('cardClientes').textContent = '0';
+        document.getElementById('cardRevendedores').textContent = '0';
+        document.getElementById('cardVentas').textContent = '0';
+        document.getElementById('cardLicencias').textContent = '0';
+        document.getElementById('cardRenovaciones').textContent = '0';
+        document.getElementById('cardImportePropietaria').textContent = '0';
+        document.getElementById('resVentasClientes').textContent = '0';
+        document.getElementById('resRenovacionesCobradas').textContent = '0';
+        document.getElementById('resReventas').textContent = '0';
+        document.getElementById('resPropietaria').textContent = '0';
+        // Tablas vacías
+        document.getElementById('tablaClientes').innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-user-slash"></i> No hay clientes.</td></tr>`;
+        document.getElementById('tablaVentas').innerHTML = `<tr><td colspan="8" class="empty-state"><i class="fas fa-box-open"></i> No hay ventas.</td></tr>`;
+        document.getElementById('tablaRevendedores').innerHTML = `<tr><td colspan="10" class="empty-state"><i class="fas fa-users-slash"></i> No hay revendedores directos.</td></tr>`;
+        document.getElementById('tablaLicencias').innerHTML = `<tr><td colspan="9" class="empty-state"><i class="fas fa-file-invoice"></i> No hay licencias revendidas.</td></tr>`;
+        document.getElementById('tablaRenovaciones').innerHTML = `<tr><td colspan="9" class="empty-state"><i class="fas fa-calendar-times"></i> No hay renovaciones.</td></tr>`;
+        document.getElementById('notificacionesList').innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i> No hay notificaciones.</div>`;
+        if (notifCounter) notifCounter.style.display = 'none';
+      }
+
+      async function cargarDatosRevendedor() {
+  if (!ID_REVENDEDOR) {
+    showToast('No se pudo identificar al revendedor.', 'error');
+    return;
+  }
+
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerRevendedorPanel',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok || !datos.revendedor) {
+      showToast(datos.mensaje || 'No se pudo cargar el panel.', 'error');
+      return;
+    }
+
+    const r = datos.revendedor;
+
+    // Cabecera
+    headerNombre.textContent = r.usuario;
+    userBadge.classList.add('visible');
+
+    // Dashboard
+    document.getElementById('dashId').textContent = r.idVendedor;
+    document.getElementById('dashUsuario').textContent = r.usuario;
+    document.getElementById('dashEstado').innerHTML =
+      `<span class="badge-estado badge-${r.estado}">${r.estado}</span>`;
+    document.getElementById('dashMercado').textContent = r.mercado || '—';
+    document.getElementById('dashInicio').textContent = r.fechaInicio || '—';
+    document.getElementById('dashFin').textContent = r.fechaFin || '—';
+
+    // Mi cuenta
+    document.getElementById('cuentaId').textContent = r.idVendedor;
+    document.getElementById('cuentaReferido').textContent =
+      r.idReferidoPor === 'PROPIETARIA'
+        ? 'PROPIETARIA'
+        : `${r.idReferidoPor} — ${r.referidoPor}`;
+
+    document.getElementById('cuentaMercado').textContent = r.mercado || '—';
+
+    const cuentaEstado = document.getElementById('cuentaEstado');
+    cuentaEstado.textContent = r.estado;
+    cuentaEstado.className = `badge-estado badge-${r.estado}`;
+
+    document.getElementById('cuentaInicio').textContent = r.fechaInicio || '—';
+    document.getElementById('cuentaFin').textContent = r.fechaFin || '—';
+
+    document.getElementById('editNombre').value = r.usuario || '';
+    document.getElementById('editTelefono').value = r.telefono || '';
+    document.getElementById('editCorreo').value = r.correo || '';
+
+    // Mi enlace
+    document.getElementById('enlaceId').textContent = r.idVendedor;
+    document.getElementById('enlaceNombre').textContent = r.usuario;
+  } catch (error) {
+    console.error(error);
+    showToast('Error al conectar con el backend.', 'error');
+  }
+}
+
+resetUI();
+navigateTo('inicio');
+cargarDatosRevendedor();
+
+    })();
+  </script>
+</body>
+</html>

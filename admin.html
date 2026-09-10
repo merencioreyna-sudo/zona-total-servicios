@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zona Total Servicios · Super Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ----- ADMIN PANEL (siempre visible en desarrollo) ----- */
+        #adminPanel {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .admin-header {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .admin-header .brand {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #0b1e33;
+        }
+        .admin-header .brand span {
+            color: #2563eb;
+        }
+        .admin-header .user-badge {
+            background: #f1f5f9;
+            padding: 0.4rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* NAV */
+        .nav-tabs {
+            background: white;
+            padding: 0 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 0.25rem;
+        }
+        .nav-tabs button {
+            background: transparent;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #475569;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: 0.2s;
+            border-radius: 0;
+        }
+        .nav-tabs button:hover {
+            color: #0b1e33;
+            background: #f8fafc;
+        }
+        .nav-tabs button.active {
+            color: #0b1e33;
+            border-bottom-color: #2563eb;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* SECTION visibility */
+        .section {
+            display: none;
+            animation: fade 0.25s ease;
+        }
+        .section.active {
+            display: block;
+        }
+        @keyframes fade {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* CARDS / DASHBOARD */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px,1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.25rem 1rem;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            border: 1px solid #eef2f6;
+        }
+        .stat-card .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #64748b;
+        }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0b1e33;
+            margin-top: 0.2rem;
+        }
+        .stat-card .sub {
+            font-size: 0.8rem;
+            color: #475569;
+        }
+
+        /* TABLES */
+        .table-wrapper {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem 0 0.5rem 0;
+            border: 1px solid #eef2f6;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        .table-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem 1.25rem;
+            padding: 0 1.5rem 1.25rem 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .table-toolbar .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .table-toolbar .filters button {
+            background: #f1f5f9;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .table-toolbar .filters button.active-filter {
+            background: #0b1e33;
+            color: white;
+        }
+        .table-toolbar input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            min-width: 200px;
+            background: #f8fafc;
+        }
+        .table-toolbar input:focus {
+            outline: 2px solid #2563eb;
+        }
+        .btn-refresh {
+            background: #eef2f6;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th {
+            text-align: left;
+            padding: 0.8rem 1rem;
+            background: #f8fafc;
+            color: #1e293b;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        td .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .badge.aprobado { background: #dcfce7; color: #166534; }
+        .badge.pendiente { background: #fef9c3; color: #854d0e; }
+        .badge.rechazado { background: #fee2e2; color: #991b1b; }
+        .badge.activo { background: #dcfce7; color: #166534; }
+        .badge.inactivo { background: #f1f5f9; color: #475569; }
+
+        .btn {
+            border: none;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.15s;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-warning { background: #eab308; color: #1e293b; }
+        .btn-sm { padding: 0.2rem 0.7rem; font-size: 0.7rem; }
+        .btn:disabled { opacity: 0.5; pointer-events: none; }
+
+        .empty-state {
+            padding: 3rem 1rem;
+            text-align: center;
+            color: #64748b;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 999;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            max-width: 430px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 32px;
+            padding: 2rem;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+        }
+        .modal-box h2 {
+            margin-bottom: 1.5rem;
+        }
+        .modal-box .close-modal {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+        .modal-box .detail-row {
+            display: flex;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .modal-box .detail-row .label {
+            width: 140px;
+            font-weight: 600;
+            color: #475569;
+            flex-shrink: 0;
+        }
+        .modal-box .detail-row .value {
+            color: #0b1e33;
+        }
+        .modal-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* form dentro de modal */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.6rem 0.9rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            background: #f8fafc;
+        }
+
+        /* responsive */
+        @media (max-width: 700px) {
+            .admin-header { flex-direction: column; align-items: stretch; }
+            .nav-tabs { padding: 0 0.5rem; }
+            .nav-tabs button { padding: 0.7rem 0.8rem; font-size: 0.8rem; }
+            .main-content { padding: 1rem; }
+            .table-toolbar { flex-direction: column; align-items: stretch; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .modal-box { padding: 1.5rem; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+
+        /* loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { display: flex; align-items: center; gap: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<!-- ========================================= -->
+<!-- PANEL ADMIN (acceso directo en desarrollo) -->
+<!-- ========================================= -->
+<div id="adminPanel">
+
+    <!-- HEADER -->
+    <header class="admin-header">
+        <div class="brand">Zona Total <span>Servicios</span></div>
+        <div class="user-badge">
+            👑 Súper Admin
+        </div>
+    </header>
+
+    <!-- NAV -->
+    <nav class="nav-tabs" id="navTabs">
+    <button class="active" data-section="dashboard">📊 Dashboard</button>
+    <button data-section="compras">🛒 Compras</button>
+    <button data-section="clientes">👤 Clientes</button>
+    <button data-section="revendedores">🤝 Revendedores</button>
+    <button data-section="productos">📦 Productos</button>
+    <button data-section="reventas">💰 Reventas Licencias</button>
+    <button data-section="configuracion">⚙️ Configuración</button>
+    <button data-section="renovaciones">🔄 Renovaciones</button>
+</nav>
+
+    <!-- CONTENIDO -->
+    <div class="main-content">
+
+        <!-- ======= DASHBOARD ======= -->
+        <section id="section-dashboard" class="section active">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem;">
+                <h2>📊 Resumen general</h2>
+                <button class="btn btn-primary" id="refreshDashboard">⟳ Actualizar</button>
+            </div>
+            <div class="stats-grid" id="dashboardStats">
+                <!-- se llena con JS -->
+                <div class="stat-card"><div class="label">Cargando...</div><div class="value">—</div></div>
+            </div>
+        </section>
+
+        <!-- ======= COMPRAS ======= -->
+        <section id="section-compras" class="section">
+            <h2>🛒 Compras</h2>
+            <div class="table-wrapper">
+                <div class="table-toolbar">
+                    <div class="filters" id="comprasFilters">
+                        <button class="active-filter" data-filter="all">Todas</button>
+                        <button data-filter="pendiente">Pendientes</button>
+                        <button data-filter="aprobado">Aprobadas</button>
+                        <button data-filter="rechazado">Rechazadas</button>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <input type="text" id="searchCompras" placeholder="Buscar compra, cliente, vendedor, producto...">
+                        <button class="btn-refresh" id="refreshCompras">⟳</button>
+                    </div>
+                </div>
+                <div id="comprasTableContainer">
+                    <table>
+                        <thead><tr>
+                            <th>ID Compra</th><th>ID Cliente</th><th>ID Vendedor</th><th>Cliente</th><th>Vendedor</th>
+                            <th>Productos</th><th>Total</th><th>Estado Pago</th><th>Fecha Compra</th><th>Acciones</th>
+                        </tr></thead>
+                        <tbody id="comprasBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======= CLIENTES ======= -->
+        <section id="section-clientes" class="section">
+            <h2>👤 Clientes</h2>
+            <div class="table-wrapper">
+                <div class="table-toolbar">
+                    <div class="filters" id="clientesFilters">
+                        <button class="active-filter" data-filter="all">Todos</button>
+                        <button data-filter="activo">Activos</button>
+                        <button data-filter="inactivo">Inactivos</button>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <input type="text" id="searchClientes" placeholder="Buscar ID, usuario, teléfono, correo, vendedor...">
+                        <button class="btn-refresh" id="refreshClientes">⟳</button>
+                    </div>
+                </div>
+                <div id="clientesTableContainer">
+                    <table>
+                        <thead><tr>
+                            <th>ID Cliente</th><th>Usuario</th><th>Teléfono</th><th>Correo</th><th>Contraseña</th>
+                            <th>ID Vendedor</th><th>Vendedor</th><th>Estado</th><th>Fecha Registro</th><th>Acciones</th>
+                        </tr></thead>
+                        <tbody id="clientesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======= REVENDEDORES ======= -->
+        <section id="section-revendedores" class="section">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+    <h2>🤝 Revendedores</h2>
+    <button class="btn btn-primary" id="btnAgregarRevendedor">+ Agregar revendedor</button>
+</div>
+            <div class="table-wrapper">
+                <div class="table-toolbar">
+                    <div class="filters" id="revendedoresFilters">
+                        <button class="active-filter" data-filter="all">Todos</button>
+                        <button data-filter="activo">Activos</button>
+                        <button data-filter="inactivo">Inactivos</button>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <input type="text" id="searchRevendedores" placeholder="ID, nombre, teléfono, correo, referido...">
+                        <button class="btn-refresh" id="refreshRevendedores">⟳</button>
+                    </div>
+                </div>
+                <div id="revendedoresTableContainer">
+                    <table>
+                        <thead><tr>
+<th>ID Vendedor</th><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Contraseña</th>
+<th>ID Referido Por</th><th>Referido Por</th><th>Porcentaje</th>
+<th>Estado</th><th>Fecha Inicio</th><th>Fecha Fin</th>
+<th>Mercado</th><th>Precio Reventa Licencia</th>
+<th>Clientes Asoc.</th><th>Rev. Asoc.</th><th>Acciones</th>
+                        </tr></thead>
+                        <tbody id="revendedoresBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+<!-- ======= REVENTAS DE LICENCIAS ======= -->
+<section id="section-reventas" class="section">
+    <h2>💰 Reventas de Licencias</h2>
+
+    <div class="table-wrapper">
+        <div class="table-toolbar">
+            <input
+                type="text"
+                id="searchReventas"
+                placeholder="Buscar ID, vendedor, nuevo revendedor..."
+            >
+            <button class="btn-refresh" id="refreshReventas">⟳</button>
+        </div>
+
+        <div id="reventasTableContainer">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Reventa</th>
+                        <th>ID Vendedor</th>
+                        <th>Vendedor</th>
+                        <th>ID Nuevo Revendedor</th>
+                        <th>Nuevo Revendedor</th>
+                        <th>Precio Licencia Oficial</th>
+                        <th>% Propietaria</th>
+                        <th>Importe Propietaria</th>
+                        <th>Estado Pago</th>
+                        <th>Fecha</th>
+                        <th>Precio Reventa Real</th>
+                    </tr>
+                </thead>
+
+                <tbody id="reventasBody">
+                    <tr>
+                        <td colspan="11" class="empty-state">
+                            Cargando reventas...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+
+<!-- ======= CONFIGURACIÓN ======= -->
+<section id="section-configuracion" class="section">
+    <h2>⚙️ Configuración</h2>
+
+    <div class="table-wrapper">
+        <div class="table-toolbar">
+            <div>
+                Valores generales utilizados para licencias y renovaciones.
+            </div>
+            <button class="btn-refresh" id="refreshConfiguracion">⟳</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Clave</th>
+                    <th>Valor</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody id="configuracionBody">
+                <tr>
+                    <td colspan="3" class="empty-state">
+                        Cargando configuración...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+<!-- ======= RENOVACIONES ======= -->
+<section id="section-renovaciones" class="section">
+    <h2>🔄 Renovaciones</h2>
+
+    <div class="table-wrapper">
+        <div class="table-toolbar">
+            <input
+                type="text"
+                id="searchRenovaciones"
+                placeholder="Buscar ID, revendedor, mercado..."
+            >
+            <button class="btn-refresh" id="refreshRenovaciones">⟳</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Renovación</th>
+                    <th>ID Vendedor</th>
+                    <th>Vendedor</th>
+                    <th>Mercado</th>
+                    <th>Importe</th>
+                    <th>Fecha Pago</th>
+                    <th>Fecha Anterior Fin</th>
+                    <th>Nueva Fecha Fin</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+
+            <tbody id="renovacionesBody">
+                <tr>
+                    <td colspan="9" class="empty-state">
+                        Cargando renovaciones...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+        <!-- ======= PRODUCTOS ======= -->
+        <section id="section-productos" class="section">
+            <h2>📦 Productos</h2>
+            <div style="margin-bottom:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button class="btn btn-primary" id="btnAgregarProducto">+ Agregar producto</button>
+                <button class="btn-refresh" id="refreshProductos">⟳</button>
+            </div>
+            <div class="table-wrapper">
+                <div class="table-toolbar">
+                    <input type="text" id="searchProductos" placeholder="Buscar producto, categoría...">
+                </div>
+                <div id="productosTableContainer">
+                    <table>
+                        <thead><tr>
+                            <th>ID</th><th>Nombre</th><th>Categoría</th><th>Descripción</th>
+                            <th>Precio</th><th>Formato</th><th>Estado</th><th>Acciones</th>
+                        </tr></thead>
+                        <tbody id="productosBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div><!-- /main-content -->
+</div><!-- /adminPanel -->
+
+<!-- ========================================= -->
+<!-- MODAL GENERAL -->
+<!-- ========================================= -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box" id="modalBox">
+        <button class="close-modal" id="modalCloseBtn">✕</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<!-- ========================================= -->
+<!-- JAVASCRIPT COMPLETO -->
+<!-- ========================================= -->
+<script>
+    (function() {
+        "use strict";
+
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzaQbpywYXzpL0Db2dKlD1jsPKHjNg_POoq-mtRwkskCVGmR77w1vw9ukSWx072qopW/exec";
+
+        // ----- DOM refs -----
+        const adminPanel = document.getElementById('adminPanel');
+
+        // nav
+        const navButtons = document.querySelectorAll('#navTabs button');
+        const sections = {
+    dashboard: document.getElementById('section-dashboard'),
+    compras: document.getElementById('section-compras'),
+    clientes: document.getElementById('section-clientes'),
+    revendedores: document.getElementById('section-revendedores'),
+    productos: document.getElementById('section-productos'),
+    reventas: document.getElementById('section-reventas'),
+    configuracion: document.getElementById('section-configuracion'),
+    renovaciones: document.getElementById('section-renovaciones')
+};
+
+        // modales
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalContent = document.getElementById('modalContent');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        // ----- ESTADO GLOBAL (cache) -----
+        let state = {
+    compras: [],
+    clientes: [],
+    revendedores: [],
+    productos: [],
+    reventas: [],
+    configuracion: [],
+    renovaciones: [],
+
+    comprasLoaded: false,
+    clientesLoaded: false,
+    revendedoresLoaded: false,
+    productosLoaded: false,
+    reventasLoaded: false,
+    configuracionLoaded: false,
+    renovacionesLoaded: false,
+};
+
+        // ----- helpers fetch -----
+        async function callBackend(action, data = {}) {
+            const payload = { accion: action, ...data };
+            const resp = await fetch(BACKEND_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+});
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return await resp.json();
+        }
+
+// ----- NAVEGACIÓN DEL PANEL -----
+navButtons.forEach(button => {
+    button.addEventListener('click', () => {
+
+        navButtons.forEach(btn => btn.classList.remove('active'));
+        Object.values(sections).forEach(section => {
+            section.classList.remove('active');
+        });
+
+        button.classList.add('active');
+
+        const sectionName = button.dataset.section;
+        const section = sections[sectionName];
+
+        if (section) {
+            section.classList.add('active');
+
+            if (sectionName === 'dashboard') renderDashboard();
+if (sectionName === 'compras') renderCompras();
+if (sectionName === 'clientes') renderClientes();
+if (sectionName === 'revendedores') renderRevendedores();
+if (sectionName === 'productos') renderProductos();
+if (sectionName === 'reventas') renderReventas();
+if (sectionName === 'configuracion') renderConfiguracion();
+if (sectionName === 'renovaciones') renderRenovaciones();
+        }
+    });
+});
+
+        // ----- CERRAR MODAL -----
+        function closeModal() {
+            modalOverlay.classList.remove('open');
+        }
+        modalCloseBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // ----- ABRIR MODAL con contenido -----
+        function openModal(html) {
+            modalContent.innerHTML = html;
+            modalOverlay.classList.add('open');
+        }
+
+
+function confirmarAccion(titulo, mensaje, textoConfirmar = 'Confirmar', tipo = 'danger') {
+    return new Promise((resolve) => {
+        const claseBoton = tipo === 'success' ? 'btn-success' : 'btn-danger';
+
+        openModal(`
+            <h2>${titulo}</h2>
+            <p style="color:#475569; line-height:1.6;">${mensaje}</p>
+
+            <div class="modal-actions">
+                <button class="btn" id="btnCancelarConfirmacion">
+                    Cancelar
+                </button>
+
+                <button class="btn ${claseBoton}" id="btnAceptarConfirmacion">
+                    ${textoConfirmar}
+                </button>
+            </div>
+        `);
+
+        document.getElementById('btnCancelarConfirmacion').onclick = () => {
+            closeModal();
+            resolve(false);
+        };
+
+        document.getElementById('btnAceptarConfirmacion').onclick = () => {
+            closeModal();
+            resolve(true);
+        };
+    });
+}
+
+
+        // ----- CARGAR TODOS LOS DATOS (con acciones backend reales) -----
+        async function cargarTodosLosDatos() {
+            await Promise.all([
+    cargarCompras(),
+    cargarClientes(),
+    cargarRevendedores(),
+    cargarProductos(),
+    cargarReventas(),
+    cargarConfiguracion(),
+    cargarRenovaciones()
+]);
+            // renderizar sección activa
+            const activeSection = document.querySelector('#navTabs .active');
+            if (activeSection) {
+                const sec = activeSection.dataset.section;
+                if (sec === 'dashboard') renderDashboard();
+else if (sec === 'compras') renderCompras();
+else if (sec === 'clientes') renderClientes();
+else if (sec === 'revendedores') renderRevendedores();
+else if (sec === 'productos') renderProductos();
+else if (sec === 'reventas') renderReventas();
+else if (sec === 'configuracion') renderConfiguracion();
+else if (sec === 'renovaciones') renderRenovaciones();
+            } else {
+                renderDashboard();
+            }
+        }
+
+        // ---------- CARGAR COMPRAS (backend real) ----------
+        async function cargarCompras() {
+            try {
+                const result = await callBackend('obtenerCompras');
+                if (result.ok) {
+                    state.compras = result.compras || [];
+                    state.comprasLoaded = true;
+                } else {
+                    state.compras = [];
+                    state.comprasLoaded = false;
+                    console.warn('obtenerCompras: ok=false', result.mensaje);
+                }
+            } catch (e) {
+                state.compras = [];
+                state.comprasLoaded = false;
+                console.error('Error cargando compras:', e.message);
+            }
+        }
+
+        // ---------- CARGAR CLIENTES (backend real) ----------
+        async function cargarClientes() {
+            try {
+                const result = await callBackend('obtenerClientes');
+                if (result.ok) {
+                    state.clientes = result.clientes || [];
+                    state.clientesLoaded = true;
+                } else {
+                    state.clientes = [];
+                    state.clientesLoaded = false;
+                    console.warn('obtenerClientes: ok=false', result.mensaje);
+                }
+            } catch (e) {
+                state.clientes = [];
+                state.clientesLoaded = false;
+                console.error('Error cargando clientes:', e.message);
+            }
+        }
+
+        // ---------- CARGAR REVENDEDORES (backend real) ----------
+        async function cargarRevendedores() {
+            try {
+                const result = await callBackend('obtenerRevendedores');
+                if (result.ok) {
+                    state.revendedores = result.revendedores || [];
+                    state.revendedoresLoaded = true;
+                } else {
+                    state.revendedores = [];
+                    state.revendedoresLoaded = false;
+                    console.warn('obtenerRevendedores: ok=false', result.mensaje);
+                }
+            } catch (e) {
+                state.revendedores = [];
+                state.revendedoresLoaded = false;
+                console.error('Error cargando revendedores:', e.message);
+            }
+        }
+
+
+// ---------- CARGAR REVENTAS DE LICENCIAS ----------
+async function cargarReventas() {
+    try {
+        const result = await callBackend('obtenerReventasLicencias');
+
+        if (result.ok) {
+            state.reventas = result.reventas || [];
+            state.reventasLoaded = true;
+        } else {
+            state.reventas = [];
+            state.reventasLoaded = false;
+            console.warn(
+                'obtenerReventasLicencias: ok=false',
+                result.mensaje
+            );
+        }
+
+    } catch (e) {
+        state.reventas = [];
+        state.reventasLoaded = false;
+        console.error(
+            'Error cargando reventas:',
+            e.message
+        );
+    }
+}
+
+
+// ---------- CARGAR CONFIGURACIÓN ----------
+async function cargarConfiguracion() {
+    try {
+        const result = await callBackend('obtenerConfiguracion');
+
+        if (result.ok) {
+            state.configuracion = Object.entries(
+                result.configuracion || {}
+            ).map(([Clave, Valor]) => ({
+                Clave,
+                Valor
+            }));
+
+            state.configuracionLoaded = true;
+        } else {
+            state.configuracion = [];
+            state.configuracionLoaded = false;
+            console.warn(
+                'obtenerConfiguracion: ok=false',
+                result.mensaje
+            );
+        }
+
+    } catch (e) {
+        state.configuracion = [];
+        state.configuracionLoaded = false;
+        console.error(
+            'Error cargando configuración:',
+            e.message
+        );
+    }
+}
+
+
+// ---------- CARGAR RENOVACIONES ----------
+async function cargarRenovaciones() {
+    try {
+        const result = await callBackend('obtenerRenovaciones');
+
+        if (result.ok) {
+            state.renovaciones = result.renovaciones || [];
+            state.renovacionesLoaded = true;
+        } else {
+            state.renovaciones = [];
+            state.renovacionesLoaded = false;
+            console.warn(
+                'obtenerRenovaciones: ok=false',
+                result.mensaje
+            );
+        }
+
+    } catch (e) {
+        state.renovaciones = [];
+        state.renovacionesLoaded = false;
+        console.error(
+            'Error cargando renovaciones:',
+            e.message
+        );
+    }
+}
+
+        // ---------- CARGAR PRODUCTOS (backend real) ----------
+        async function cargarProductos() {
+            try {
+                const result = await callBackend('obtenerProductos');
+                if (result.ok) {
+                    state.productos = result.productos || [];
+                    state.productosLoaded = true;
+                } else {
+                    state.productos = [];
+                    state.productosLoaded = false;
+                    console.warn('obtenerProductos: ok=false', result.mensaje);
+                }
+            } catch (e) {
+                state.productos = [];
+                state.productosLoaded = false;
+                console.error('Error cargando productos:', e.message);
+            }
+        }
+
+        // ----- RENDER DASHBOARD (solo con datos reales) -----
+        function renderDashboard() {
+            const container = document.getElementById('dashboardStats');
+            const compras = state.comprasLoaded ? state.compras : [];
+            const clientes = state.clientesLoaded ? state.clientes : [];
+            const rev = state.revendedoresLoaded ? state.revendedores : [];
+            const prods = state.productosLoaded ? state.productos : [];
+
+            const totalClientes = clientes.length;
+            const activosCli = clientes.filter(c => c.Estado === 'ACTIVO').length;
+            const inactivosCli = clientes.filter(c => c.Estado === 'INACTIVO').length;
+
+            const totalRev = rev.length;
+            const activosRev = rev.filter(r => r.Estado === 'ACTIVO').length;
+            const inactivosRev = rev.filter(r => r.Estado === 'INACTIVO').length;
+
+            const totalCompras = compras.length;
+            const pendientes = compras.filter(c => c.Estado_Pago === 'PENDIENTE').length;
+            const aprobadas = compras.filter(c => c.Estado_Pago === 'APROBADO').length;
+            const rechazadas = compras.filter(c => c.Estado_Pago === 'RECHAZADO').length;
+
+            const totalProd = prods.length;
+            const activosProd = prods.filter(p => p.Estado === 'ACTIVO').length;
+            const inactivosProd = prods.filter(p => p.Estado === 'INACTIVO').length;
+
+            const stats = [
+                { label: 'Total clientes', value: state.clientesLoaded ? totalClientes : '—' },
+                { label: 'Clientes activos', value: state.clientesLoaded ? activosCli : '—' },
+                { label: 'Clientes inactivos', value: state.clientesLoaded ? inactivosCli : '—' },
+                { label: 'Total revendedores', value: state.revendedoresLoaded ? totalRev : '—' },
+                { label: 'Rev. activos', value: state.revendedoresLoaded ? activosRev : '—' },
+                { label: 'Rev. inactivos', value: state.revendedoresLoaded ? inactivosRev : '—' },
+                { label: 'Total compras', value: state.comprasLoaded ? totalCompras : '—' },
+                { label: 'Compras pendientes', value: state.comprasLoaded ? pendientes : '—' },
+                { label: 'Compras aprobadas', value: state.comprasLoaded ? aprobadas : '—' },
+                { label: 'Compras rechazadas', value: state.comprasLoaded ? rechazadas : '—' },
+                { label: 'Total productos', value: state.productosLoaded ? totalProd : '—' },
+                { label: 'Productos activos', value: state.productosLoaded ? activosProd : '—' },
+                { label: 'Productos inactivos', value: state.productosLoaded ? inactivosProd : '—' }
+            ];
+
+            container.innerHTML = stats.map(s => `
+                <div class="stat-card">
+                    <div class="label">${s.label}</div>
+                    <div class="value">${s.value !== undefined ? s.value : '—'}</div>
+                </div>
+            `).join('');
+        }
+
+        // ----- RENDER COMPRAS (con filtros y búsqueda) -----
+        function renderCompras() {
+            const filter = document.querySelector('#comprasFilters .active-filter')?.dataset.filter || 'all';
+            const search = document.getElementById('searchCompras').value.toLowerCase().trim();
+            let list = state.compras || [];
+            if (filter !== 'all') {
+                list = list.filter(c => c.Estado_Pago === filter.toUpperCase());
+            }
+            if (search) {
+                list = list.filter(c =>
+                    (c.ID_Compra || '').toLowerCase().includes(search) ||
+                    (c.Cliente || '').toLowerCase().includes(search) ||
+                    (c.Vendedor || '').toLowerCase().includes(search) ||
+                    (c.Productos || '').toLowerCase().includes(search)
+                );
+            }
+            const tbody = document.getElementById('comprasBody');
+            if (!state.comprasLoaded) {
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Cargando compras...</td></tr>`;
+                return;
+            }
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No hay compras registradas</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = list.map(c => {
+                const estado = c.Estado_Pago || 'PENDIENTE';
+                const badgeClass = estado.toLowerCase();
+                const acciones = estado === 'PENDIENTE' ? `
+                    <button class="btn btn-success btn-sm" onclick="aprobarCompra('${c.ID_Compra}', this)">Aprobar</button>
+                    <button class="btn btn-danger btn-sm" onclick="rechazarCompra('${c.ID_Compra}', this)">Rechazar</button>
+                ` : `<span class="badge ${badgeClass}">${estado}</span>`;
+                return `<tr>
+                    <td><strong>${c.ID_Compra || '—'}</strong></td>
+                    <td>${c.ID_Cliente || '—'}</td>
+                    <td>${c.ID_Vendedor || '—'}</td>
+                    <td>${c.Cliente || '—'}</td>
+                    <td>${c.Vendedor || '—'}</td>
+                    <td>${c.Productos || '—'}</td>
+                    <td>${c.Total || '—'}</td>
+                    <td><span class="badge ${badgeClass}">${estado}</span></td>
+                    <td>${c.Fecha_Compra || '—'}</td>
+                    <td><div class="actions">${acciones}</div></td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ----- APROBAR COMPRA (acción existente) -----
+        window.aprobarCompra = async function(idCompra, btn) {
+            if (!idCompra) return;
+            const confirmado = await confirmarAccion(
+    'Aprobar compra',
+    `¿Seguro que deseas aprobar la compra <strong>${idCompra}</strong>?`,
+    'Sí, aprobar',
+    'success'
+);
+
+if (!confirmado) return;
+            if (btn) btn.disabled = true;
+            try {
+                const result = await callBackend('aprobarCompra', { idCompra });
+                if (result.ok) {
+                    // Actualizar local solo si backend confirma
+                    const compra = state.compras.find(c => c.ID_Compra === idCompra);
+                    if (compra) compra.Estado_Pago = 'APROBADO';
+                    renderCompras();
+                    showToast('Compra aprobada correctamente');
+                } else {
+                    showToast('Error: ' + (result.mensaje || 'No se pudo aprobar'));
+                }
+            } catch (e) {
+                showToast('Error de conexión: ' + e.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+        // ----- RECHAZAR COMPRA (acción nueva requerida) -----
+        window.rechazarCompra = async function(idCompra, btn) {
+            if (!idCompra) return;
+            const confirmado = await confirmarAccion(
+    'Rechazar compra',
+    `¿Seguro que deseas rechazar la compra <strong>${idCompra}</strong>?`,
+    'Sí, rechazar',
+    'danger'
+);
+
+if (!confirmado) return;
+            if (btn) btn.disabled = true;
+            try {
+                const result = await callBackend('rechazarCompra', { idCompra });
+                if (result.ok) {
+                    const compra = state.compras.find(c => c.ID_Compra === idCompra);
+                    if (compra) compra.Estado_Pago = 'RECHAZADO';
+                    renderCompras();
+                    showToast('Compra rechazada');
+                } else {
+                    showToast('Error: ' + (result.mensaje || 'No se pudo rechazar'));
+                }
+            } catch (e) {
+                showToast('Error de conexión: ' + e.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+        // ----- RENDER CLIENTES -----
+        function renderClientes() {
+            const filter = document.querySelector('#clientesFilters .active-filter')?.dataset.filter || 'all';
+            const search = document.getElementById('searchClientes').value.toLowerCase().trim();
+            let list = state.clientes || [];
+            if (filter !== 'all') {
+                list = list.filter(c => c.Estado === filter.toUpperCase());
+            }
+            if (search) {
+                list = list.filter(c =>
+                    (c.ID_Cliente || '').toLowerCase().includes(search) ||
+                    (c.Usuario || '').toLowerCase().includes(search) ||
+                    (c.Telefono || '').toLowerCase().includes(search) ||
+                    (c.Correo || '').toLowerCase().includes(search) ||
+                    (c.Vendedor || '').toLowerCase().includes(search)
+                );
+            }
+            const tbody = document.getElementById('clientesBody');
+            if (!state.clientesLoaded) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Cargando clientes...</td></tr>`;
+    return;
+}
+if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No hay clientes registrados</td></tr>`;
+    return;
+}
+            tbody.innerHTML = list.map(c => `
+                <tr>
+                    <td><strong>${c.ID_Cliente || '—'}</strong></td>
+                    <td>${c.Usuario || '—'}</td>
+                    <td>${c.Telefono || '—'}</td>
+                    <td>${c.Correo || '—'}</td>
+                    <td>${c.Contrasena || '—'}</td>
+                    <td>${c.ID_Vendedor || '—'}</td>
+                    <td>${c.Vendedor || '—'}</td>
+                    <td><span class="badge ${(c.Estado||'').toLowerCase()}">${c.Estado || '—'}</span></td>
+                    <td>${c.Fecha_Registro || '—'}</td>
+                    <td><div class="actions">
+                        <button class="btn btn-sm" onclick="verCliente('${c.ID_Cliente}')">Detalles</button>
+                        <button class="btn btn-sm" onclick="verComprasCliente('${c.ID_Cliente}')">Compras</button>
+                        ${c.Estado === 'ACTIVO' ? `<button class="btn btn-danger btn-sm" onclick="toggleCliente('${c.ID_Cliente}','INACTIVO', this)">Desactivar</button>` : 
+                        `<button class="btn btn-success btn-sm" onclick="toggleCliente('${c.ID_Cliente}','ACTIVO', this)">Activar</button>`}
+                    </div></td>
+                </tr>
+            `).join('');
+        }
+
+        // ----- CLIENTE acciones (backend requerido) -----
+        window.verCliente = function(id) {
+            const cliente = state.clientes.find(c => c.ID_Cliente === id);
+            if (!cliente) {
+    showToast('Cliente no encontrado');
+    return;
+}
+            const html = `
+                <h2>Detalles del cliente</h2>
+                ${Object.entries(cliente).map(([k,v]) => `<div class="detail-row"><span class="label">${k}</span><span class="value">${v || '—'}</span></div>`).join('')}
+                <div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button></div>
+            `;
+            openModal(html);
+        };
+
+        window.verComprasCliente = function(idCliente) {
+            const compras = state.compras.filter(c => c.ID_Cliente === idCliente);
+            if (compras.length === 0) {
+                openModal(`<h2>Compras del cliente ${idCliente}</h2><p>No tiene compras.</p><button class="btn" onclick="closeModal()">Cerrar</button>`);
+                return;
+            }
+            let html = `<h2>Compras del cliente ${idCliente}</h2><table><tr><th>ID</th><th>Productos</th><th>Total</th><th>Estado</th></tr>`;
+            compras.forEach(c => {
+                html += `<tr><td>${c.ID_Compra}</td><td>${c.Productos}</td><td>${c.Total}</td><td>${c.Estado_Pago}</td></tr>`;
+            });
+            html += `</table><div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button></div>`;
+            openModal(html);
+        };
+
+        window.toggleCliente = async function(id, nuevoEstado, btn) {
+            const confirmado = await confirmarAccion(
+    nuevoEstado === 'INACTIVO' ? 'Desactivar cliente' : 'Activar cliente',
+    `¿Seguro que deseas ${nuevoEstado === 'INACTIVO' ? 'desactivar' : 'activar'} al cliente <strong>${id}</strong>?`,
+    nuevoEstado === 'INACTIVO' ? 'Sí, desactivar' : 'Sí, activar',
+    nuevoEstado === 'INACTIVO' ? 'danger' : 'success'
+);
+
+if (!confirmado) return;
+            if (btn) btn.disabled = true;
+            try {
+                const result = await callBackend('cambiarEstadoCliente', { idCliente: id, nuevoEstado });
+                if (result.ok) {
+                    const cliente = state.clientes.find(c => c.ID_Cliente === id);
+                    if (cliente) cliente.Estado = nuevoEstado;
+                    renderClientes();
+                    showToast(`Cliente ${id} → ${nuevoEstado}`);
+                } else {
+                    showToast('Error: ' + (result.mensaje || 'No se pudo cambiar estado'));
+                }
+            } catch (e) {
+                showToast('Error de conexión: ' + e.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+document.getElementById('btnAgregarRevendedor').addEventListener('click', () => {
+
+    const html = `
+        <h2>Agregar revendedor</h2>
+
+        <form id="formAgregarRevendedor">
+
+            <div class="form-group">
+                <label>Usuario</label>
+                <input name="usuario" required>
+            </div>
+
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input name="telefono" required>
+            </div>
+
+            <div class="form-group">
+                <label>Correo</label>
+                <input name="correo" type="email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input name="contrasena" type="password" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mercado</label>
+                <select name="mercado" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="CUBA">CUBA</option>
+                    <option value="EXTRANJERO">EXTRANJERO</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    class="btn"
+                    onclick="closeModal()"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Guardar
+                </button>
+            </div>
+
+        </form>
+    `;
+
+    openModal(html);
+
+    document
+        .getElementById('formAgregarRevendedor')
+        .addEventListener('submit', async (e) => {
+
+            e.preventDefault();
+
+            const form = e.target;
+            const data = new FormData(form);
+            const obj = {};
+
+            for (let [k, v] of data.entries()) {
+                obj[k] = v;
+            }
+
+            // Todo revendedor creado desde Súper Admin
+            // pertenece directamente a PROPIETARIA.
+            obj.idReferidoPor = 'PROPIETARIA';
+            obj.referidoPor = 'PROPIETARIA';
+            obj.precioReventa = '';
+
+            const btn = form.querySelector('[type="submit"]');
+            btn.disabled = true;
+
+            try {
+
+                const result = await callBackend(
+                    'registrarRevendedor',
+                    obj
+                );
+
+                if (result.ok) {
+
+                    await cargarRevendedores();
+                    renderRevendedores();
+
+                    closeModal();
+
+                    showToast(
+                        'Revendedor ' +
+                        result.idVendedor +
+                        ' agregado correctamente'
+                    );
+
+                } else {
+
+                    showToast(
+                        'Error: ' +
+                        (result.mensaje ||
+                        'No se pudo agregar el revendedor')
+                    );
+                }
+
+            } catch (e) {
+
+                showToast(
+                    'Error de conexión: ' + e.message
+                );
+
+            } finally {
+
+                btn.disabled = false;
+            }
+        });
+});
+
+
+
+// ----- RENDER REVENDEDORES -----
+        function renderRevendedores() {
+            const filter = document.querySelector('#revendedoresFilters .active-filter')?.dataset.filter || 'all';
+            const search = document.getElementById('searchRevendedores').value.toLowerCase().trim();
+            let list = state.revendedores || [];
+            if (filter !== 'all') {
+                list = list.filter(r => r.Estado === filter.toUpperCase());
+            }
+            if (search) {
+                list = list.filter(r =>
+                    (r.ID_Vendedor || '').toLowerCase().includes(search) ||
+                    (r.Usuario || '').toLowerCase().includes(search) ||
+                    (r.Telefono || '').toLowerCase().includes(search) ||
+                    (r.Correo || '').toLowerCase().includes(search) ||
+                    (r.ReferidoPor || '').toLowerCase().includes(search)
+                );
+            }
+            const tbody = document.getElementById('revendedoresBody');
+            if (!state.revendedoresLoaded) {
+    tbody.innerHTML = `<tr><td colspan="16" class="empty-state">Cargando revendedores...</td></tr>`;
+    return;
+}
+if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="16" class="empty-state">No hay revendedores registrados</td></tr>`;
+    return;
+}
+            tbody.innerHTML = list.map(r => {
+                const clientesAsoc = state.clientes.filter(c => c.ID_Vendedor === r.ID_Vendedor).length;
+                const revAsoc = state.revendedores.filter(rev => rev.ID_ReferidoPor === r.ID_Vendedor).length;
+                return `<tr>
+                    <td><strong>${r.ID_Vendedor || '—'}</strong></td>
+                    <td>${r.Usuario || '—'}</td>
+                    <td>${r.Telefono || '—'}</td>
+                    <td>${r.Correo || '—'}</td>
+                    <td>${r.Contrasena || '—'}</td>
+                    <td>${r.ID_ReferidoPor || '—'}</td>
+                    <td>${r.ReferidoPor || '—'}</td>
+                    <td>${r.Porcentaje || '—'}</td>
+                    <td><span class="badge ${(r.Estado||'').toLowerCase()}">${r.Estado || '—'}</span></td>
+                    <td>${r.Fecha_Inicio || '—'}</td>
+                    <td>${r.Fecha_Fin || '—'}</td>
+                    <td>${r.Mercado || '—'}</td>
+                    <td>${r.Precio_Reventa_Licencia || '—'}</td>
+                    <td>${clientesAsoc} <button class="btn btn-sm" onclick="verClientesRev('${r.ID_Vendedor}')">Ver</button></td>
+                    <td>${revAsoc} <button class="btn btn-sm" onclick="verRevAsoc('${r.ID_Vendedor}')">Ver</button></td>
+                    <td><div class="actions">
+                        <button class="btn btn-sm" onclick="verRevendedor('${r.ID_Vendedor}')">Detalles</button>
+<button class="btn btn-sm" onclick="editarRevendedor('${r.ID_Vendedor}')">Editar</button>
+${r.Estado !== 'PENDIENTE' ? `<button class="btn btn-warning btn-sm" onclick="renovarRevendedor('${r.ID_Vendedor}', this)">Renovar</button>` : ''}
+                        ${r.Estado === 'ACTIVO' ? `<button class="btn btn-danger btn-sm" onclick="toggleRevendedor('${r.ID_Vendedor}','INACTIVO', this)">Desactivar</button>` :
+                        `<button class="btn btn-success btn-sm" onclick="toggleRevendedor('${r.ID_Vendedor}','ACTIVO', this)">Activar</button>`}
+                    </div></td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ----- REVENDEDOR acciones (backend requerido) -----
+        window.verRevendedor = function(id) {
+            const rev = state.revendedores.find(r => r.ID_Vendedor === id);
+            if (!rev) {
+    showToast('Revendedor no encontrado');
+    return;
+}
+            const html = `<h2>Detalles del revendedor</h2>${Object.entries(rev).map(([k,v]) => `<div class="detail-row"><span class="label">${k}</span><span class="value">${v || '—'}</span></div>`).join('')}
+                <div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button></div>`;
+            
+            openModal(html);
+        };
+
+  window.editarRevendedor = function(id) {
+    const rev = state.revendedores.find(r => r.ID_Vendedor === id);
+
+    if (!rev) {
+        showToast('Revendedor no encontrado');
+        return;
+    }
+
+    const opcionesReferidos = (state.revendedores || [])
+        .filter(r => r.ID_Vendedor !== id)
+        .map(r => `
+            <option
+                value="${r.ID_Vendedor}"
+                data-nombre="${r.Usuario}"
+                ${rev.ID_ReferidoPor === r.ID_Vendedor ? 'selected' : ''}
+            >
+                ${r.ID_Vendedor} — ${r.Usuario}
+            </option>
+        `)
+        .join('');
+
+    const html = `
+        <h2>Editar revendedor ${id}</h2>
+
+        <form id="formEditarRevendedor">
+
+            <div class="form-group">
+                <label>Usuario</label>
+                <input name="Usuario" value="${rev.Usuario || ''}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input name="Telefono" value="${rev.Telefono || ''}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Correo</label>
+                <input name="Correo" type="email" value="${rev.Correo || ''}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input name="Contrasena" type="text" value="${rev.Contrasena || ''}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Referido por / Responsable</label>
+
+                <select name="ID_ReferidoPor" id="editarReferidoPor" required>
+
+                    <option
+                        value="PROPIETARIA"
+                        data-nombre="PROPIETARIA"
+                        ${rev.ID_ReferidoPor === 'PROPIETARIA' ? 'selected' : ''}
+                    >
+                        PROPIETARIA — Súper Admin
+                    </option>
+
+                    ${opcionesReferidos}
+
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn" onclick="closeModal()">
+                    Cancelar
+                </button>
+
+                <button type="submit" class="btn btn-primary">
+                    Guardar cambios
+                </button>
+            </div>
+
+        </form>
+    `;
+
+    openModal(html);
+
+    document
+        .getElementById('formEditarRevendedor')
+        .addEventListener('submit', async (e) => {
+
+            e.preventDefault();
+
+            const form = e.target;
+            const data = new FormData(form);
+            const obj = {};
+
+            for (let [k, v] of data.entries()) {
+                obj[k] = v;
+            }
+
+            const selectReferido =
+                document.getElementById('editarReferidoPor');
+
+            const opcionSeleccionada =
+                selectReferido.options[selectReferido.selectedIndex];
+
+            obj.ReferidoPor =
+                opcionSeleccionada.dataset.nombre;
+
+            const btn = form.querySelector('[type="submit"]');
+            btn.disabled = true;
+
+            try {
+
+                const result = await callBackend('editarRevendedor', {
+                    idVendedor: id,
+                    ...obj
+                });
+
+                if (result.ok) {
+
+                    await cargarRevendedores();
+                    renderRevendedores();
+
+                    closeModal();
+
+                    showToast(
+                        'Revendedor actualizado correctamente'
+                    );
+
+                } else {
+
+                    showToast(
+                        'Error: ' +
+                        (result.mensaje ||
+                        'No se pudo editar el revendedor')
+                    );
+                }
+
+            } catch (e) {
+
+                showToast(
+                    'Error de conexión: ' + e.message
+                );
+
+            } finally {
+
+                btn.disabled = false;
+            }
+        });
+};      
+
+
+        window.verClientesRev = function(idVendedor) {
+
+            const clientes = state.clientes.filter(c => c.ID_Vendedor === idVendedor);
+            if (clientes.length === 0) {
+                openModal(`<h2>Clientes de ${idVendedor}</h2><p>No tiene clientes directos.</p><button class="btn" onclick="closeModal()">Cerrar</button>`);
+                return;
+            }
+            let html = `<h2>Clientes de ${idVendedor}</h2><table><tr><th>ID</th><th>Usuario</th><th>Teléfono</th><th>Estado</th></tr>`;
+            clientes.forEach(c => {
+                html += `<tr><td>${c.ID_Cliente}</td><td>${c.Usuario}</td><td>${c.Telefono}</td><td>${c.Estado}</td></tr>`;
+            });
+            html += `</table><div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button></div>`;
+            openModal(html);
+        };
+
+        window.verRevAsoc = function(idVendedor) {
+            const revs = state.revendedores.filter(r => r.ID_ReferidoPor === idVendedor);
+            if (revs.length === 0) {
+                openModal(`<h2>Revendedores referidos por ${idVendedor}</h2><p>No tiene revendedores asociados.</p><button class="btn" onclick="closeModal()">Cerrar</button>`);
+                return;
+            }
+            let html = `<h2>Revendedores referidos por ${idVendedor}</h2><table><tr><th>ID</th><th>Nombre</th><th>Estado</th></tr>`;
+            revs.forEach(r => {
+                html += `<tr><td>${r.ID_Vendedor}</td><td>${r.Usuario}</td><td>${r.Estado}</td></tr>`;
+            });
+            html += `</table><div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button></div>`;
+            openModal(html);
+        };
+
+
+window.renovarRevendedor = async function(id, btn) {
+
+    const rev = state.revendedores.find(
+        r => r.ID_Vendedor === id
+    );
+
+    if (!rev) {
+        showToast('Revendedor no encontrado');
+        return;
+    }
+
+    const confirmado = await confirmarAccion(
+        'Confirmar renovación',
+        `¿Confirmas que recibiste el pago de la mensualidad de <strong>${id} - ${rev.Usuario}</strong>? Al confirmar se extenderá su Fecha_Fin por un mes.`,
+        'Sí, confirmar pago',
+        'success'
+    );
+
+    if (!confirmado) return;
+
+    if (btn) btn.disabled = true;
+
+    try {
+
+        const result = await callBackend(
+            'renovarRevendedor',
+            { idVendedor: id }
+        );
+
+        if (result.ok) {
+
+            await cargarRevendedores();
+            renderRevendedores();
+
+            showToast('Renovación registrada correctamente');
+
+        } else {
+
+            showToast(
+                'Error: ' +
+                (result.mensaje || 'No se pudo registrar la renovación')
+            );
+        }
+
+    } catch (e) {
+
+        showToast('Error de conexión: ' + e.message);
+
+    } finally {
+
+        if (btn) btn.disabled = false;
+    }
+};
+
+
+
+        window.toggleRevendedor = async function(id, nuevoEstado, btn) {
+            // Verificar dependencias si se desactiva
+            if (nuevoEstado === 'INACTIVO') {
+                const clientes = state.clientes.filter(c => c.ID_Vendedor === id).length;
+                const revs = state.revendedores.filter(r => r.ID_ReferidoPor === id).length;
+                if (clientes > 0 || revs > 0) {
+                    const confirmadoDependencias = await confirmarAccion(
+    'Revendedor con asociados',
+    `Este revendedor tiene <strong>${clientes} clientes</strong> y <strong>${revs} revendedores directos</strong>. ¿Deseas continuar?`,
+    'Sí, continuar',
+    'danger'
+);
+
+if (!confirmadoDependencias) return;
+                }
+            }
+            const confirmado = await confirmarAccion(
+    nuevoEstado === 'INACTIVO' ? 'Desactivar revendedor' : 'Activar revendedor',
+    `¿Seguro que deseas ${nuevoEstado === 'INACTIVO' ? 'desactivar' : 'activar'} al revendedor <strong>${id}</strong>?`,
+    nuevoEstado === 'INACTIVO' ? 'Sí, desactivar' : 'Sí, activar',
+    nuevoEstado === 'INACTIVO' ? 'danger' : 'success'
+);
+
+if (!confirmado) return;
+            if (btn) btn.disabled = true;
+            try {
+                const result = await callBackend('cambiarEstadoRevendedor', { idVendedor: id, nuevoEstado });
+                if (result.ok) {
+                    const rev = state.revendedores.find(r => r.ID_Vendedor === id);
+                    if (rev) rev.Estado = nuevoEstado;
+                    renderRevendedores();
+                    showToast(`Revendedor ${id} → ${nuevoEstado}`);
+                } else {
+                    showToast('Error: ' + (result.mensaje || 'No se pudo cambiar estado'));
+                }
+            } catch (e) {
+                showToast('Error de conexión: ' + e.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+
+// ----- RENDER REVENTAS DE LICENCIAS -----
+function renderReventas() {
+    const tbody = document.getElementById('reventasBody');
+
+    if (!tbody) return;
+
+    const search = document
+        .getElementById('searchReventas')
+        .value
+        .toLowerCase()
+        .trim();
+
+    let list = state.reventas || [];
+
+    if (search) {
+        list = list.filter(r =>
+            (r.ID_Reventa || '').toLowerCase().includes(search) ||
+            (r.ID_Vendedor || '').toLowerCase().includes(search) ||
+            (r.Vendedor || '').toLowerCase().includes(search) ||
+            (r.ID_NuevoRevendedor || '').toLowerCase().includes(search) ||
+            (r.NuevoRevendedor || '').toLowerCase().includes(search)
+        );
+    }
+
+    if (!state.reventasLoaded) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" class="empty-state">
+                    Cargando reventas...
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    if (list.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" class="empty-state">
+                    No hay reventas de licencias registradas
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = list.map(r => `
+        <tr>
+            <td><strong>${r.ID_Reventa || '—'}</strong></td>
+            <td>${r.ID_Vendedor || '—'}</td>
+            <td>${r.Vendedor || '—'}</td>
+            <td>${r.ID_NuevoRevendedor || '—'}</td>
+            <td>${r.NuevoRevendedor || '—'}</td>
+            <td>${r.Precio_Licencia || '—'}</td>
+            <td>${r.Porcentaje_Propietaria || '—'}</td>
+            <td>${r.Importe_Propietaria || '—'}</td>
+            <td>
+                <span class="badge ${(r.Estado_Pago || '').toLowerCase()}">
+                    ${r.Estado_Pago || '—'}
+                </span>
+            </td>
+            <td>${r.Fecha || '—'}</td>
+            <td>${r.Precio_Reventa || '—'}</td>
+        </tr>
+    `).join('');
+}
+
+
+window.editarConfiguracion = function(clave) {
+
+    const config = state.configuracion.find(
+        c => c.Clave === clave
+    );
+
+    if (!config) {
+        showToast('Configuración no encontrada');
+        return;
+    }
+
+    const html = `
+        <h2>Editar configuración</h2>
+
+        <form id="formEditarConfiguracion">
+
+            <div class="form-group">
+                <label>Clave</label>
+                <input value="${config.Clave}" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>Valor</label>
+                <input
+                    name="valor"
+                    type="number"
+                    step="any"
+                    min="0"
+                    value="${config.Valor}"
+                    required
+                >
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn" onclick="closeModal()">
+                    Cancelar
+                </button>
+
+                <button type="submit" class="btn btn-primary">
+                    Guardar
+                </button>
+            </div>
+
+        </form>
+    `;
+
+    openModal(html);
+
+    document
+        .getElementById('formEditarConfiguracion')
+        .addEventListener('submit', async (e) => {
+
+            e.preventDefault();
+
+            const form = e.target;
+            const valor = form.valor.value;
+            const btn = form.querySelector('[type="submit"]');
+
+            btn.disabled = true;
+
+            try {
+
+                const result = await callBackend(
+                    'actualizarConfiguracion',
+                    {
+                        clave: clave,
+                        valor: valor
+                    }
+                );
+
+                if (result.ok) {
+
+                    await cargarConfiguracion();
+                    renderConfiguracion();
+
+                    closeModal();
+
+                    showToast(
+                        'Configuración actualizada correctamente'
+                    );
+
+                } else {
+
+                    showToast(
+                        'Error: ' +
+                        (result.mensaje ||
+                        'No se pudo actualizar la configuración')
+                    );
+                }
+
+            } catch (e) {
+
+                showToast(
+                    'Error de conexión: ' + e.message
+                );
+
+            } finally {
+
+                btn.disabled = false;
+            }
+        });
+};
+
+// ----- RENDER CONFIGURACIÓN -----
+function renderConfiguracion() {
+    const tbody = document.getElementById('configuracionBody');
+
+    if (!tbody) return;
+
+    if (!state.configuracionLoaded) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-state">
+                    Cargando configuración...
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    if (!state.configuracion || state.configuracion.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-state">
+                    No hay configuración registrada
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = state.configuracion.map(c => `
+        <tr>
+            <td><strong>${c.Clave || '—'}</strong></td>
+            <td>${c.Valor ?? '—'}</td>
+            <td>
+                <button
+                    class="btn btn-sm"
+                    onclick="editarConfiguracion('${c.Clave}')"
+                >
+                    Editar
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+
+// ----- RENDER RENOVACIONES -----
+function renderRenovaciones() {
+    const tbody = document.getElementById('renovacionesBody');
+
+    if (!tbody) return;
+
+    const search = document
+        .getElementById('searchRenovaciones')
+        .value
+        .toLowerCase()
+        .trim();
+
+    let list = state.renovaciones || [];
+
+    if (search) {
+        list = list.filter(r =>
+            (r.ID_Renovacion || '').toLowerCase().includes(search) ||
+            (r.ID_Vendedor || '').toLowerCase().includes(search) ||
+            (r.Vendedor || '').toLowerCase().includes(search) ||
+            (r.Mercado || '').toLowerCase().includes(search)
+        );
+    }
+
+    if (!state.renovacionesLoaded) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="empty-state">
+                    Cargando renovaciones...
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    if (list.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="empty-state">
+                    No hay renovaciones registradas
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = list.map(r => `
+        <tr>
+            <td><strong>${r.ID_Renovacion || '—'}</strong></td>
+            <td>${r.ID_Vendedor || '—'}</td>
+            <td>${r.Vendedor || '—'}</td>
+            <td>${r.Mercado || '—'}</td>
+            <td>${r.Importe ?? '—'}</td>
+            <td>${r.Fecha_Pago || '—'}</td>
+            <td>${r.Fecha_Anterior_Fin || '—'}</td>
+            <td>${r.Nueva_Fecha_Fin || '—'}</td>
+            <td>
+                <span class="badge ${(r.Estado || '').toLowerCase()}">
+                    ${r.Estado || '—'}
+                </span>
+            </td>
+        </tr>
+    `).join('');
+}
+
+
+        // ----- RENDER PRODUCTOS -----
+        function renderProductos() {
+            const search = document.getElementById('searchProductos').value.toLowerCase().trim();
+            let list = state.productos || [];
+            if (search) {
+                list = list.filter(p =>
+                    (p.Nombre || '').toLowerCase().includes(search) ||
+                    (p.Categoria || '').toLowerCase().includes(search)
+                );
+            }
+            const tbody = document.getElementById('productosBody');
+            if (!state.productosLoaded) {
+                tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Cargando productos...</td></tr>`;
+                return;
+            }
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay productos registrados.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = list.map(p => `
+                <tr>
+                    <td><strong>${p.ID_Producto || '—'}</strong></td>
+                    <td>${p.Nombre || '—'}</td>
+                    <td>${p.Categoria || '—'}</td>
+                    <td>${p.Descripcion || '—'}</td>
+                    <td>${p.Precio || '—'}</td>
+                    <td>${p.Formato || '—'}</td>
+                    <td><span class="badge ${(p.Estado||'').toLowerCase()}">${p.Estado || '—'}</span></td>
+                    <td><div class="actions">
+                        <button class="btn btn-sm" onclick="verProducto('${p.ID_Producto}')">Detalles</button>
+                        <button class="btn btn-sm" onclick="editarProducto('${p.ID_Producto}')">Editar</button>
+                        ${p.Estado === 'ACTIVO' ? `<button class="btn btn-danger btn-sm" onclick="toggleProducto('${p.ID_Producto}','INACTIVO', this)">Desactivar</button>` :
+                        `<button class="btn btn-success btn-sm" onclick="toggleProducto('${p.ID_Producto}','ACTIVO', this)">Activar</button>`}
+                    </div></td>
+                </tr>
+            `).join('');
+        }
+
+        // ----- PRODUCTO acciones (backend requerido) -----
+        window.verProducto = function(id) {
+            const p = state.productos.find(prod => prod.ID_Producto === id);
+            if (!p) {
+    showToast('Producto no encontrado');
+    return;
+}
+            const html = `<h2>Detalles del producto</h2>${Object.entries(p).map(([k,v]) => `<div class="detail-row"><span class="label">${k}</span><span class="value">${v || '—'}</span></div>`).join('')}
+                <div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button></div>`;
+            openModal(html);
+        };
+
+        window.editarProducto = function(id) {
+            const p = state.productos.find(prod => prod.ID_Producto === id);
+            if (!p) {
+    showToast('Producto no encontrado');
+    return;
+}
+            const html = `
+                <h2>Editar producto ${id}</h2>
+                <form id="formEditarProducto">
+                    <div class="form-group"><label>Nombre</label><input name="Nombre" value="${p.Nombre || ''}" required></div>
+                    <div class="form-group"><label>Categoría</label><input name="Categoria" value="${p.Categoria || ''}"></div>
+                    <div class="form-group"><label>Descripción</label><input name="Descripcion" value="${p.Descripcion || ''}"></div>
+                    <div class="form-group"><label>Precio</label><input name="Precio" value="${p.Precio || ''}"></div>
+                    <div class="form-group"><label>Formato</label><input name="Formato" value="${p.Formato || ''}"></div>
+                    <div class="form-group"><label>Estado</label>
+                        <select name="Estado"><option value="ACTIVO" ${p.Estado==='ACTIVO'?'selected':''}>ACTIVO</option>
+                        <option value="INACTIVO" ${p.Estado==='INACTIVO'?'selected':''}>INACTIVO</option></select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
+                </form>
+            `;
+            openModal(html);
+            document.getElementById('formEditarProducto').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const data = new FormData(form);
+                const obj = {};
+                for (let [k,v] of data.entries()) obj[k] = v;
+                const btn = form.querySelector('[type="submit"]');
+                btn.disabled = true;
+                try {
+                    const result = await callBackend('editarProducto', { idProducto: id, ...obj });
+                    if (result.ok) {
+                        // Actualizar local solo si backend confirma
+                        const prod = state.productos.find(pr => pr.ID_Producto === id);
+                        if (prod) Object.assign(prod, obj);
+                        renderProductos();
+                        closeModal();
+                        showToast('Producto actualizado');
+                    } else {
+                        showToast('Error: ' + (result.mensaje || 'No se pudo editar'));
+                    }
+                } catch (e) {
+                    showToast('Error de conexión: ' + e.message);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        };
+
+        window.toggleProducto = async function(id, nuevoEstado, btn) {
+            const confirmado = await confirmarAccion(
+    nuevoEstado === 'INACTIVO' ? 'Desactivar producto' : 'Activar producto',
+    `¿Seguro que deseas ${nuevoEstado === 'INACTIVO' ? 'desactivar' : 'activar'} el producto <strong>${id}</strong>?`,
+    nuevoEstado === 'INACTIVO' ? 'Sí, desactivar' : 'Sí, activar',
+    nuevoEstado === 'INACTIVO' ? 'danger' : 'success'
+);
+
+if (!confirmado) return;
+            if (btn) btn.disabled = true;
+            try {
+                const result = await callBackend('cambiarEstadoProducto', { idProducto: id, nuevoEstado });
+                if (result.ok) {
+                    const prod = state.productos.find(p => p.ID_Producto === id);
+                    if (prod) prod.Estado = nuevoEstado;
+                    renderProductos();
+                    showToast(`Producto ${id} → ${nuevoEstado}`);
+                } else {
+                    showToast('Error: ' + (result.mensaje || 'No se pudo cambiar estado'));
+                }
+            } catch (e) {
+                showToast('Error de conexión: ' + e.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+        // ----- AGREGAR PRODUCTO (backend requerido) -----
+        document.getElementById('btnAgregarProducto').addEventListener('click', () => {
+            const html = `
+                <h2>Agregar producto</h2>
+                <form id="formAgregarProducto">
+                    <div class="form-group"><label>Nombre</label><input name="Nombre" required></div>
+                    <div class="form-group"><label>Categoría</label><input name="Categoria"></div>
+                    <div class="form-group"><label>Descripción</label><input name="Descripcion"></div>
+                    <div class="form-group"><label>Precio</label><input name="Precio"></div>
+                    <div class="form-group"><label>Formato</label><input name="Formato"></div>
+                    <div class="form-group"><label>Estado</label>
+                        <select name="Estado"><option value="ACTIVO">ACTIVO</option><option value="INACTIVO">INACTIVO</option></select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
+                </form>
+            `;
+            openModal(html);
+            document.getElementById('formAgregarProducto').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const data = new FormData(form);
+                const obj = {};
+                for (let [k,v] of data.entries()) obj[k] = v;
+                const btn = form.querySelector('[type="submit"]');
+                btn.disabled = true;
+                try {
+                    const result = await callBackend('agregarProducto', obj);
+                    if (result.ok) {
+                        // Recargar productos desde backend
+                        await cargarProductos();
+                        renderProductos();
+                        closeModal();
+                        showToast('Producto agregado correctamente');
+                    } else {
+                        showToast('Error: ' + (result.mensaje || 'No se pudo agregar'));
+                    }
+                } catch (e) {
+                    showToast('Error de conexión: ' + e.message);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        // ----- FILTROS Y BÚSQUEDA (eventos) -----
+        document.querySelectorAll('.filters').forEach(filterGroup => {
+            filterGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterGroup.querySelectorAll('button').forEach(b => b.classList.remove('active-filter'));
+                    btn.classList.add('active-filter');
+                    const section = filterGroup.closest('.section')?.id?.replace('section-','');
+                    if (section === 'compras') renderCompras();
+                    else if (section === 'clientes') renderClientes();
+                    else if (section === 'revendedores') renderRevendedores();
+                });
+            });
+        });
+
+        document.getElementById('searchCompras').addEventListener('input', renderCompras);
+        document.getElementById('searchClientes').addEventListener('input', renderClientes);
+        document.getElementById('searchRevendedores').addEventListener('input', renderRevendedores);
+        document.getElementById('searchProductos').addEventListener('input', renderProductos);
+
+document.getElementById('searchReventas').addEventListener('input', renderReventas);
+document.getElementById('searchRenovaciones').addEventListener('input', renderRenovaciones);
+
+document.getElementById('refreshReventas').addEventListener('click', async () => {
+    await cargarReventas();
+    renderReventas();
+});
+
+document.getElementById('refreshConfiguracion').addEventListener('click', async () => {
+    await cargarConfiguracion();
+    renderConfiguracion();
+});
+
+document.getElementById('refreshRenovaciones').addEventListener('click', async () => {
+    await cargarRenovaciones();
+    renderRenovaciones();
+});
+
+        // ----- REFRESH (con await) -----
+        document.getElementById('refreshDashboard').addEventListener('click', async () => {
+            await cargarTodosLosDatos();
+        });
+        document.getElementById('refreshCompras').addEventListener('click', async () => {
+            await cargarCompras();
+            renderCompras();
+        });
+        document.getElementById('refreshClientes').addEventListener('click', async () => {
+            await cargarClientes();
+            renderClientes();
+        });
+        document.getElementById('refreshRevendedores').addEventListener('click', async () => {
+            await cargarRevendedores();
+            renderRevendedores();
+        });
+        document.getElementById('refreshProductos').addEventListener('click', async () => {
+            await cargarProductos();
+            renderProductos();
+        });
+
+        // ----- TOAST (simple) -----
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#0b1e33;color:white;padding:0.8rem 2rem;border-radius:60px;font-weight:500;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.2);';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // cerrar modal desde window (para onclick)
+        window.closeModal = closeModal;
+
+        // ----- INICIALIZAR -----
+        // adminPanel ya está visible (sin login)
+        // Cargar datos al inicio
+        cargarTodosLosDatos();
+
+        console.log('✅ admin.html cargado. Pendientes acciones backend listadas al final.');
+    })();
+</script>
+
+<!-- ========================================= -->
+<!-- NOTA: ACCIONES BACKEND QUE FALTAN          -->
+<!-- ========================================= -->
+<!--
+ACCIONES BACKEND QUE FALTAN
+----------------------------
+
+1. obtenerCompras
+   Método: POST
+   Recibe: {} (vacío)
+   Devuelve: { ok: true, compras: [ {ID_Compra, ID_Cliente, Cliente, ID_Vendedor, Vendedor, Productos, Total, Estado_Pago, Fecha_Compra} ] }
+   Hoja: Compras
+   Validar: autenticación (admin)
+   Hacer: devolver todas las compras.
+
+2. obtenerClientes
+   Método: POST
+   Recibe: {}
+   Devuelve: { ok: true, clientes: [ {ID_Cliente, Usuario, Telefono, Correo, ID_Vendedor, Vendedor, Estado, Fecha_Registro} ] }
+   Hoja: Clientes
+
+3. obtenerRevendedores
+   Método: POST
+   Recibe: {}
+   Devuelve: { ok: true, revendedores: [ {ID_Vendedor, Usuario, Telefono, Correo, ID_ReferidoPor, ReferidoPor, Porcentaje, Estado, Fecha_Inicio, Fecha_Fin} ] }
+   Hoja: Revendedores
+
+4. obtenerProductos
+   Método: POST
+   Recibe: {}
+   Devuelve: { ok: true, productos: [ {ID_Producto, Nombre, Categoria, Descripcion, Precio, Formato, Estado} ] }
+   Hoja: Productos
+
+5. rechazarCompra
+   Método: POST
+   Recibe: { idCompra }
+   Devuelve: { ok: true, mensaje: "Compra rechazada" }
+   Hoja: Compras (actualiza Estado_Pago = 'RECHAZADO')
+   Validar: que la compra exista y esté PENDIENTE
+
+6. cambiarEstadoCliente
+   Método: POST
+   Recibe: { idCliente, nuevoEstado }  (ACTIVO / INACTIVO)
+   Devuelve: { ok: true, mensaje }
+   Hoja: Clientes (actualiza Estado)
+
+7. cambiarEstadoRevendedor
+   Método: POST
+   Recibe: { idVendedor, nuevoEstado } (ACTIVO / INACTIVO)
+   Devuelve: { ok: true, mensaje }
+   Hoja: Revendedores (actualiza Estado)
+
+8. agregarProducto
+   Método: POST
+   Recibe: { Nombre, Categoria, Descripcion, Precio, Formato, Estado }
+   Devuelve: { ok: true, idProducto: "PRn", mensaje }
+   Hoja: Productos (inserta nueva fila, genera ID automático)
+
+9. editarProducto
+   Método: POST
+   Recibe: { idProducto, Nombre, Categoria, Descripcion, Precio, Formato, Estado }
+   Devuelve: { ok: true, mensaje }
+   Hoja: Productos (actualiza campos, NO cambia ID)
+
+10. cambiarEstadoProducto
+    Método: POST
+    Recibe: { idProducto, nuevoEstado }
+    Devuelve: { ok: true, mensaje }
+    Hoja: Productos (actualiza Estado)
+
+Nota: La autenticación del Súper Admin se implementará posteriormente (iniciarSesionAdmin).
+Por ahora, el panel está abierto para desarrollo local.
+-->
+</html>
