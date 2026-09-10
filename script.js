@@ -27,6 +27,13 @@ function guardarSesion() {
 }
 
 
+function cerrarSesion() {
+  sessionStorage.removeItem('zonaTotalUsuario');
+  currentUser = null;
+  pendingAction = null;
+  actualizarHeader();
+}
+
  // { username, phone, email, role }
 
   const PROPIETARIA = {
@@ -1702,7 +1709,12 @@ function actualizarHeader() {
 }
 
   if (modalAreaClienteClose) { modalAreaClienteClose.addEventListener('click', function() { cerrarModal(modalAreaClienteOverlay); }); }
-  if (modalAreaClienteActionBtn) { modalAreaClienteActionBtn.addEventListener('click', function() { cerrarModal(modalAreaClienteOverlay); }); }
+  if (modalAreaClienteActionBtn) {
+  modalAreaClienteActionBtn.addEventListener('click', function() {
+    cerrarModal(modalAreaClienteOverlay);
+    cerrarSesion();
+  });
+}
 
   // =============================================
   // 23. NOTIFICACIONES - EVENTOS
