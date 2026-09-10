@@ -687,6 +687,28 @@
     (function() {
         "use strict";
 
+const sesionGuardada = sessionStorage.getItem('zonaTotalUsuario');
+
+if (!sesionGuardada) {
+    window.location.href = 'index.html';
+    return;
+}
+
+let usuarioSesion;
+
+try {
+    usuarioSesion = JSON.parse(sesionGuardada);
+} catch (error) {
+    sessionStorage.removeItem('zonaTotalUsuario');
+    window.location.href = 'index.html';
+    return;
+}
+
+if (usuarioSesion.role !== 'propietaria') {
+    window.location.href = 'index.html';
+    return;
+}
+
         const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzaQbpywYXzpL0Db2dKlD1jsPKHjNg_POoq-mtRwkskCVGmR77w1vw9ukSWx072qopW/exec";
 
         // ----- DOM refs -----
