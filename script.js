@@ -879,12 +879,14 @@ if (btnLoginEntrar) {
 
       if (datosPropietaria.ok) {
         currentUser = {
-          id: 'PROPIETARIA',
-          username: datosPropietaria.usuario,
-          phone: '',
-          email: datosPropietaria.correo,
-          role: 'propietaria'
-        };
+  id: 'PROPIETARIA',
+  username: datosPropietaria.usuario,
+  phone: '',
+  email: datosPropietaria.correo,
+  role: 'propietaria'
+};
+
+guardarSesion();
 
         pendingAction = null;
 
