@@ -1400,16 +1400,16 @@ async function cargarClientesRevendedor() {
 
     tabla.innerHTML = clientes.map(c => `
       <tr>
-        <td>${c.idCliente || '—'}</td>
-        <td>${c.usuario || '—'}</td>
-        <td>${c.telefono || '—'}</td>
-        <td>${c.correo || '—'}</td>
+        <td>${c.ID_Cliente || '—'}</td>
+        <td>${c.Usuario || '—'}</td>
+        <td>${c.Telefono || '—'}</td>
+        <td>${c.Correo || '—'}</td>
         <td>
-          <span class="badge-estado badge-${c.estado}">
-            ${c.estado || '—'}
+          <span class="badge-estado badge-${c.Estado}">
+            ${c.Estado || '—'}
           </span>
         </td>
-        <td>${c.fechaRegistro || '—'}</td>
+        <td>${c.Fecha_Registro || '—'}</td>
         <td>—</td>
       </tr>
     `).join('');
