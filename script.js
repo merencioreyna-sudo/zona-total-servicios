@@ -14,7 +14,8 @@ try {
   }
 } catch (error) {
   currentUser = null;
-}          
+}        
+
 
 function guardarSesion() {
   if (currentUser) {
@@ -23,10 +24,10 @@ function guardarSesion() {
       JSON.stringify(currentUser)
     );
   }
-}  
-  
-  
-  // { username, phone, email, role }
+}
+
+
+ // { username, phone, email, role }
 
   const PROPIETARIA = {
     username: 'Reyna Anelis',
@@ -939,7 +940,8 @@ if (datosRevendedor.ok) {
     mercado: datosRevendedor.mercado,
     precioReventaLicencia: datosRevendedor.precioReventaLicencia
   };
-  guardarSesion();
+
+guardarSesion();
 
   cerrarModal(modalLoginOverlay);
   actualizarHeader();
@@ -983,6 +985,7 @@ if (datosCliente.ok) {
     vendedor: datosCliente.vendedor,
     telefonoVendedor: datosCliente.telefonoVendedor
   };
+guardarSesion();
 
   cerrarModal(modalLoginOverlay);
   actualizarHeader();
