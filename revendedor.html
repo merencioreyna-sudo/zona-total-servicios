@@ -249,6 +249,12 @@
       margin-top: 0.3rem;
       color: #1c0f0b;
     }
+
+    #cardImportePropietaria {
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+
     .card .sub {
       font-size: 0.75rem;
       color: #5f4e46;
@@ -1998,10 +2004,27 @@ const totalReventasExtranjero = reventas
     return total + (Number.isFinite(importe) ? importe : 0);
   }, 0);
 
-// Total que corresponde a PROPIETARIA.
-// Se usa el importe ya calculado y guardado en cada reventa.
-const totalPropietaria = reventas
-  .filter(r => String(r.Estado_Pago || '').trim().toUpperCase() === 'PAGADO')
+// Total de PROPIETARIA separado por mercado
+const totalPropietariaCuba = reventas
+  .filter(r =>
+    String(r.Estado_Pago || '').trim().toUpperCase() === 'PAGADO' &&
+    String(r.Mercado || '').trim().toUpperCase() === 'CUBA'
+  )
+  .reduce((total, r) => {
+    const importe = Number(
+      String(r.Importe_Propietaria || '0')
+        .replace(/\s/g, '')
+        .replace(',', '.')
+    );
+
+    return total + (Number.isFinite(importe) ? importe : 0);
+  }, 0);
+
+const totalPropietariaExtranjero = reventas
+  .filter(r =>
+    String(r.Estado_Pago || '').trim().toUpperCase() === 'PAGADO' &&
+    String(r.Mercado || '').trim().toUpperCase() === 'EXTRANJERO'
+  )
   .reduce((total, r) => {
     const importe = Number(
       String(r.Importe_Propietaria || '0')
@@ -2014,8 +2037,11 @@ const totalPropietaria = reventas
 
 document.getElementById('resReventas').innerHTML =
   `${totalReventasCuba} CUP<br>${totalReventasExtranjero} USD/EUR`;
-document.getElementById('resPropietaria').textContent = totalPropietaria;
-document.getElementById('cardImportePropietaria').textContent = totalPropietaria;
+document.getElementById('resPropietaria').innerHTML =
+  `${totalPropietariaCuba} CUP<br>${totalPropietariaExtranjero} USD/EUR`;
+
+document.getElementById('cardImportePropietaria').innerHTML =
+  `${totalPropietariaCuba} CUP<br>${totalPropietariaExtranjero} USD/EUR`;
 
     if (reventas.length === 0) {
       tabla.innerHTML = `
