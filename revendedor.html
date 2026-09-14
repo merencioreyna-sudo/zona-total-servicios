@@ -1967,9 +1967,27 @@ const tabla = document.getElementById('tablaLicencias');
 
 document.getElementById('cardLicencias').textContent = reventas.length;
 
-// Total realmente cobrado por el revendedor
-const totalReventas = reventas
-  .filter(r => String(r.Estado_Pago || '').trim().toUpperCase() === 'PAGADO')
+// Total de reventas separado por mercado
+const totalReventasCuba = reventas
+  .filter(r =>
+    String(r.Estado_Pago || '').trim().toUpperCase() === 'PAGADO' &&
+    String(r.Mercado || '').trim().toUpperCase() === 'CUBA'
+  )
+  .reduce((total, r) => {
+    const importe = Number(
+      String(r.Precio_Reventa || '0')
+        .replace(/\s/g, '')
+        .replace(',', '.')
+    );
+
+    return total + (Number.isFinite(importe) ? importe : 0);
+  }, 0);
+
+const totalReventasExtranjero = reventas
+  .filter(r =>
+    String(r.Estado_Pago || '').trim().toUpperCase() === 'PAGADO' &&
+    String(r.Mercado || '').trim().toUpperCase() === 'EXTRANJERO'
+  )
   .reduce((total, r) => {
     const importe = Number(
       String(r.Precio_Reventa || '0')
@@ -1994,7 +2012,8 @@ const totalPropietaria = reventas
     return total + (Number.isFinite(importe) ? importe : 0);
   }, 0);
 
-document.getElementById('resReventas').textContent = totalReventas;
+document.getElementById('resReventas').innerHTML =
+  `${totalReventasCuba} CUP<br>${totalReventasExtranjero} USD/EUR`;
 document.getElementById('resPropietaria').textContent = totalPropietaria;
 document.getElementById('cardImportePropietaria').textContent = totalPropietaria;
 
