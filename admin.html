@@ -303,6 +303,13 @@
             padding: 2rem;
             box-shadow: 0 30px 60px rgba(0,0,0,0.2);
         }
+
+       #modalBox.modal-notificaciones {
+    max-width: 900px;
+    width: 95%;
+}
+
+
         .modal-box h2 {
             margin-bottom: 1.5rem;
         }
@@ -400,6 +407,22 @@
     </div>
 
     <div style="display:flex; align-items:center; gap:0.75rem;">
+
+    <button
+    id="btnNotificacionesAdmin"
+    title="Notificaciones"
+    style="position:relative; background:#f1f5f9; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; font-size:1.2rem;"
+>
+    🔔
+
+    <span
+        id="contadorNotificaciones"
+        style="display:none; position:absolute; top:-5px; right:-5px; background:#dc2626; color:white; min-width:20px; height:20px; padding:0 5px; border-radius:20px; font-size:11px; font-weight:700; align-items:center; justify-content:center;"
+    >
+        0
+    </span>
+</button>
+
     <div class="user-badge">
         👑 Súper Admin
     </div>
@@ -644,6 +667,7 @@
 </section>
 
 
+
         <!-- ======= PRODUCTOS ======= -->
         <section id="section-productos" class="section">
             <h2>📦 Productos</h2>
@@ -716,6 +740,7 @@ if (usuarioSesion.role !== 'propietaria') {
 
         // nav
         const navButtons = document.querySelectorAll('#navTabs button');
+        const btnNotificacionesAdmin = document.getElementById('btnNotificacionesAdmin');
         const sections = {
     dashboard: document.getElementById('section-dashboard'),
     compras: document.getElementById('section-compras'),
@@ -741,6 +766,7 @@ if (usuarioSesion.role !== 'propietaria') {
     reventas: [],
     configuracion: [],
     renovaciones: [],
+    notificaciones: [],
 
     comprasLoaded: false,
     clientesLoaded: false,
@@ -749,7 +775,9 @@ if (usuarioSesion.role !== 'propietaria') {
     reventasLoaded: false,
     configuracionLoaded: false,
     renovacionesLoaded: false,
+    notificacionesLoaded: false,
 };
+let notificacionesVistasIds = new Set();
 
         // ----- helpers fetch -----
         async function callBackend(action, data = {}) {
@@ -791,10 +819,34 @@ if (sectionName === 'renovaciones') renderRenovaciones();
     });
 });
 
+
+btnNotificacionesAdmin.addEventListener('click', () => {
+    modalBox.classList.add('modal-notificaciones');
+    renderNotificaciones();
+    modalOverlay.classList.add('open');
+});
+
         // ----- CERRAR MODAL -----
-        function closeModal() {
-            modalOverlay.classList.remove('open');
-        }
+       async function closeModal() {
+
+    modalOverlay.classList.remove('open');
+    modalBox.classList.remove('modal-notificaciones');
+
+    if (notificacionesVistasIds.size > 0) {
+
+    const idsVistos = Array.from(notificacionesVistasIds);
+    notificacionesVistasIds.clear();
+
+    for (const idVista of idsVistos) {
+        await callBackend(
+            'marcarNotificacionVista',
+            { idNotificacion: idVista }
+        );
+    }
+
+    await cargarNotificaciones();
+}
+}
         modalCloseBtn.addEventListener('click', closeModal);
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
@@ -841,14 +893,15 @@ function confirmarAccion(titulo, mensaje, textoConfirmar = 'Confirmar', tipo = '
 
         // ----- CARGAR TODOS LOS DATOS (con acciones backend reales) -----
         async function cargarTodosLosDatos() {
-            await Promise.all([
+           await Promise.all([
     cargarCompras(),
     cargarClientes(),
     cargarRevendedores(),
     cargarProductos(),
     cargarReventas(),
     cargarConfiguracion(),
-    cargarRenovaciones()
+    cargarRenovaciones(),
+    cargarNotificaciones()
 ]);
             // renderizar sección activa
             const activeSection = document.querySelector('#navTabs .active');
@@ -1013,6 +1066,53 @@ async function cargarRenovaciones() {
         );
     }
 }
+
+
+function actualizarContadorNotificaciones() {
+    const contador = document.getElementById('contadorNotificaciones');
+
+    const noVistas = (state.notificaciones || []).filter(n =>
+        String(n.Vista || '').trim().toUpperCase() !== 'SI'
+    ).length;
+
+    if (noVistas > 0) {
+        contador.textContent = noVistas > 99 ? '99+' : noVistas;
+        contador.style.display = 'flex';
+    } else {
+        contador.textContent = '0';
+        contador.style.display = 'none';
+    }
+}
+
+
+// ---------- CARGAR NOTIFICACIONES ----------
+async function cargarNotificaciones() {
+    try {
+        const result = await callBackend('obtenerNotificaciones');
+
+        if (result.ok) {
+            state.notificaciones = result.notificaciones || [];
+            state.notificacionesLoaded = true;
+            actualizarContadorNotificaciones();
+        } else {
+            state.notificaciones = [];
+            state.notificacionesLoaded = false;
+            console.warn(
+                'obtenerNotificaciones: ok=false',
+                result.mensaje
+            );
+        }
+
+    } catch (e) {
+        state.notificaciones = [];
+        state.notificacionesLoaded = false;
+        console.error(
+            'Error cargando notificaciones:',
+            e.message
+        );
+    }
+}
+
 
         // ---------- CARGAR PRODUCTOS (backend real) ----------
         async function cargarProductos() {
@@ -2041,7 +2141,251 @@ function renderRenovaciones() {
 }
 
 
-        // ----- RENDER PRODUCTOS -----
+// ----- RENDER NOTIFICACIONES -----
+function renderNotificaciones() {
+
+    if (!state.notificacionesLoaded) {
+        modalContent.innerHTML = `
+            <h2>🔔 Notificaciones</h2>
+            <div class="empty-state">Cargando notificaciones...</div>
+        `;
+        return;
+    }
+
+    const list = state.notificaciones || [];
+
+    if (list.length === 0) {
+        modalContent.innerHTML = `
+            <h2>🔔 Notificaciones</h2>
+            <div class="empty-state">No hay notificaciones</div>
+        `;
+        return;
+    }
+
+    modalContent.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+            <h2 style="margin:0;">🔔 Notificaciones</h2>
+
+            <button
+                class="btn-refresh"
+                id="refreshNotificacionesModal"
+                title="Actualizar"
+            >
+                ⟳
+            </button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+            ${list.map(n => {
+
+                const pendiente = !String(n.Respuesta || '').trim();
+
+                return `
+                    <div
+    data-id-notificacion="${n.ID_Notificacion}"
+    style="
+        border:1px solid #e2e8f0;
+                        border-radius:20px;
+                        padding:1.4rem;
+                        background:#f8fafc;
+                    ">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:1rem;
+                            flex-wrap:wrap;
+                            margin-bottom:1rem;
+                        ">
+                            <strong>
+                                ${n.Tipo === 'DESACTIVACION_ANTICIPADA'
+                                    ? 'Solicitud de desactivación anticipada'
+                                    : (n.Tipo || 'Notificación')
+                                }
+                            </strong>
+
+                            <span class="badge ${pendiente ? 'pendiente' : 'aprobado'}">
+                                ${pendiente ? 'PENDIENTE' : n.Respuesta}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span class="label">Notificación</span>
+                            <span class="value">${n.ID_Notificacion || '—'}</span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span class="label">Solicitante</span>
+                            <span class="value">
+                                ${n.ID_Solicitante || '—'}
+                                ${n.Solicitante ? ` — ${n.Solicitante}` : ''}
+                            </span>
+                        </div>
+
+                       <div class="detail-row">
+    <span class="label">Revendedor</span>
+    <span class="value">
+        ${n.ID_Objetivo || '—'}
+        ${(() => {
+            const revObjetivo = (state.revendedores || []).find(
+                r => r.ID_Vendedor === n.ID_Objetivo
+            );
+
+            return revObjetivo?.Usuario
+                ? ` — ${revObjetivo.Usuario}`
+                : '';
+        })()}
+    </span>
+</div>
+
+                        <div class="detail-row">
+                            <span class="label">Teléfono</span>
+                            <span class="value">${n.Telefono || '—'}</span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span class="label">Correo</span>
+                            <span class="value">${n.Correo || '—'}</span>
+                        </div>
+
+                        <div style="margin-top:1rem;">
+                            <strong>Motivo de la solicitud</strong>
+
+                            <div style="
+                                margin-top:0.5rem;
+                                padding:1rem;
+                                background:white;
+                                border:1px solid #e2e8f0;
+                                border-radius:14px;
+                                line-height:1.6;
+                                white-space:normal;
+                                overflow-wrap:anywhere;
+                            ">
+                                ${n.Motivo || '—'}
+                            </div>
+                        </div>
+
+                        <div style="
+                            margin-top:0.8rem;
+                            font-size:0.82rem;
+                            color:#64748b;
+                        ">
+                            ${n.Fecha || '—'}
+                        </div>
+
+                        ${pendiente && n.Tipo === 'DESACTIVACION_ANTICIPADA'
+                            ? `
+                                <div class="modal-actions">
+                                    <button
+    class="btn btn-success"
+    onclick="resolverNotificacion('${n.ID_Notificacion}', 'APROBAR', this)"
+>
+    Aprobar
+</button>
+
+<button
+    class="btn btn-danger"
+    onclick="resolverNotificacion('${n.ID_Notificacion}', 'RECHAZAR', this)"
+>
+    Rechazar
+</button>
+                                </div>
+                              `
+                            : ''
+                        }
+
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+
+    const refreshModal =
+        document.getElementById('refreshNotificacionesModal');
+
+   if (refreshModal) {
+    refreshModal.addEventListener('click', async () => {
+        await cargarNotificaciones();
+        renderNotificaciones();
+    });
+}
+
+const tarjetasNotificacion =
+    modalContent.querySelectorAll('[data-id-notificacion]');
+
+tarjetasNotificacion.forEach(tarjeta => {
+    tarjeta.addEventListener('click', () => {
+        const id = tarjeta.dataset.idNotificacion;
+
+        if (id) {
+            notificacionesVistasIds.add(id);
+        }
+    });
+});
+
+
+}
+
+
+window.resolverNotificacion = async function(idNotificacion, decision, btn) {
+
+    const esAprobar = decision === 'APROBAR';
+
+    const confirmado = await confirmarAccion(
+        esAprobar ? 'Aprobar solicitud' : 'Rechazar solicitud',
+        esAprobar
+            ? '¿Seguro que deseas aprobar esta desactivación anticipada? El revendedor y su red dependiente quedarán INACTIVOS.'
+            : '¿Seguro que deseas rechazar esta solicitud de desactivación anticipada?',
+        esAprobar ? 'Sí, aprobar' : 'Sí, rechazar',
+        esAprobar ? 'success' : 'danger'
+    );
+
+    if (!confirmado) return;
+
+    if (btn) btn.disabled = true;
+
+    try {
+
+        const result = await callBackend(
+            'resolverDesactivacionAnticipada',
+            {
+                idNotificacion: idNotificacion,
+                decision: decision
+            }
+        );
+
+        if (result.ok) {
+
+            await Promise.all([
+                cargarNotificaciones(),
+                cargarRevendedores()
+            ]);
+
+            renderNotificaciones();
+            renderRevendedores();
+
+            showToast(result.mensaje);
+
+        } else {
+
+            showToast(
+                'Error: ' +
+                (result.mensaje || 'No se pudo resolver la solicitud')
+            );
+        }
+
+    } catch (e) {
+
+        showToast('Error de conexión: ' + e.message);
+
+    } finally {
+
+        if (btn) btn.disabled = false;
+    }
+};
+
+
+     // ----- RENDER PRODUCTOS -----
         function renderProductos() {
             const search = document.getElementById('searchProductos').value.toLowerCase().trim();
             let list = state.productos || [];
@@ -2250,6 +2594,7 @@ document.getElementById('refreshRenovaciones').addEventListener('click', async (
     await cargarRenovaciones();
     renderRenovaciones();
 });
+
 
         // ----- REFRESH (con await) -----
         document.getElementById('refreshDashboard').addEventListener('click', async () => {
