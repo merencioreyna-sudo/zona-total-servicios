@@ -927,8 +927,14 @@
     <div class="modal-box">
       <h3><i class="fas fa-exclamation-triangle" style="color:#b31b1b;"></i> Solicitar desactivación anticipada</h3>
       <p>El revendedor tiene Fecha_Fin en el futuro. Debes indicar el motivo para que PROPIETARIA evalúe la solicitud.</p>
-      <label>ID del revendedor objetivo</label>
-      <input type="text" id="modalDesactivarId" readonly>
+      <label>Datos del revendedor</label>
+
+<div id="modalDesactivarDatos" class="revendedor-datos">
+  <div><strong>ID:</strong> <span id="modalDesactivarId"></span></div>
+  <div><strong>Nombre:</strong> <span id="modalDesactivarNombre"></span></div>
+  <div><strong>Teléfono:</strong> <span id="modalDesactivarTelefono"></span></div>
+  <div><strong>Correo:</strong> <span id="modalDesactivarCorreo"></span></div>
+</div>
       <label>Motivo de desactivación</label>
       <textarea id="modalDesactivarMotivo" placeholder="Escribe el motivo de la solicitud"></textarea>
       <div class="modal-actions">
@@ -1027,6 +1033,26 @@ const ID_REVENDEDOR = parametros.get('v');
         setTimeout(() => { t.remove(); }, 4000);
       }
 
+
+function formatearFecha(fecha) {
+  if (!fecha || fecha === '—') return '—';
+
+  const d = new Date(fecha);
+
+  if (isNaN(d.getTime())) return fecha;
+
+  return d.toLocaleString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
+
+
       // --- NAVEGACIÓN ---
       function navigateTo(sectionId) {
         sections.forEach(sec => sec.classList.remove('active-section'));
@@ -1101,44 +1127,185 @@ const ID_REVENDEDOR = parametros.get('v');
 
       // --- MODALES DE ACCIONES ---
       // ACTIVAR
-      const modalActivar = document.getElementById('modalActivar');
-      document.getElementById('modalActivarCancelar').addEventListener('click', () => {
-        modalActivar.classList.remove('show');
-      });
-      modalActivar.addEventListener('click', (e) => {
-        if (e.target === modalActivar) modalActivar.classList.remove('show');
-      });
-      document.getElementById('modalActivarConfirmar').addEventListener('click', () => {
-        // REQUIERE ENDPOINT BACKEND
-        showToast('Esta acción requiere conexión con el backend.', 'info');
-        modalActivar.classList.remove('show');
-      });
+const modalActivar = document.getElementById('modalActivar');
+const modalActivarCancelar = document.getElementById('modalActivarCancelar');
+const modalActivarConfirmar = document.getElementById('modalActivarConfirmar');
+
+let revendedorActivarId = null;
+
+modalActivarCancelar.addEventListener('click', () => {
+  revendedorActivarId = null;
+  modalActivar.classList.remove('show');
+});
+
+modalActivar.addEventListener('click', (e) => {
+  if (e.target === modalActivar) {
+    revendedorActivarId = null;
+    modalActivar.classList.remove('show');
+  }
+});
+
+modalActivarConfirmar.addEventListener('click', async () => {
+  if (!revendedorActivarId) return;
+
+  try {
+    modalActivarConfirmar.disabled = true;
+
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'activarRevendedorDirecto',
+        idVendedor: ID_REVENDEDOR,
+        idRevendedor: revendedorActivarId
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudo activar el revendedor.', 'error');
+      return;
+    }
+
+    modalActivar.classList.remove('show');
+    revendedorActivarId = null;
+
+    showToast('Revendedor activado correctamente.', 'success');
+
+    await cargarRevendedoresDirectos();
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al activar el revendedor.', 'error');
+  } finally {
+    modalActivarConfirmar.disabled = false;
+  }
+});
 
       // RENOVAR
-      const modalRenovar = document.getElementById('modalRenovar');
-      document.getElementById('modalRenovarCancelar').addEventListener('click', () => {
-        modalRenovar.classList.remove('show');
-      });
-      modalRenovar.addEventListener('click', (e) => {
-        if (e.target === modalRenovar) modalRenovar.classList.remove('show');
-      });
-      document.getElementById('modalRenovarConfirmar').addEventListener('click', () => {
-        showToast('Esta acción requiere conexión con el backend.', 'info');
-        modalRenovar.classList.remove('show');
-      });
+const modalRenovar = document.getElementById('modalRenovar');
+const modalRenovarCancelar = document.getElementById('modalRenovarCancelar');
+const modalRenovarConfirmar = document.getElementById('modalRenovarConfirmar');
+
+let revendedorRenovarId = null;
+
+modalRenovarCancelar.addEventListener('click', () => {
+  revendedorRenovarId = null;
+  modalRenovar.classList.remove('show');
+});
+
+modalRenovarConfirmar.addEventListener('click', async () => {
+  if (!revendedorRenovarId) return;
+
+  try {
+    modalRenovarConfirmar.disabled = true;
+
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'renovarRevendedorDirecto',
+        idVendedor: ID_REVENDEDOR,
+        idRevendedor: revendedorRenovarId
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudo renovar el revendedor.', 'error');
+      return;
+    }
+
+    modalRenovar.classList.remove('show');
+    revendedorRenovarId = null;
+
+    showToast('Revendedor renovado correctamente.', 'success');
+
+    await cargarRevendedoresDirectos();
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al renovar el revendedor.', 'error');
+  } finally {
+    modalRenovarConfirmar.disabled = false;
+  }
+});
 
       // DESACTIVACIÓN NORMAL
-      const modalDesactivarNormal = document.getElementById('modalDesactivarNormal');
-      document.getElementById('modalDesactivarNormalCancelar').addEventListener('click', () => {
-        modalDesactivarNormal.classList.remove('show');
-      });
-      modalDesactivarNormal.addEventListener('click', (e) => {
-        if (e.target === modalDesactivarNormal) modalDesactivarNormal.classList.remove('show');
-      });
-      document.getElementById('modalDesactivarNormalConfirmar').addEventListener('click', () => {
-        showToast('Esta acción requiere conexión con el backend.', 'info');
-        modalDesactivarNormal.classList.remove('show');
-      });
+const modalDesactivarNormal = document.getElementById('modalDesactivarNormal');
+const modalDesactivarNormalCancelar = document.getElementById('modalDesactivarNormalCancelar');
+const modalDesactivarNormalConfirmar = document.getElementById('modalDesactivarNormalConfirmar');
+
+let revendedorDesactivarId = null;
+let revendedorDesactivarDatos = {
+  nombre: '',
+  telefono: '',
+  correo: ''
+};
+
+modalDesactivarNormalCancelar.addEventListener('click', () => {
+  revendedorDesactivarId = null;
+  modalDesactivarNormal.classList.remove('show');
+});
+
+modalDesactivarNormal.addEventListener('click', (e) => {
+  if (e.target === modalDesactivarNormal) {
+    revendedorDesactivarId = null;
+    modalDesactivarNormal.classList.remove('show');
+  }
+});
+
+modalDesactivarNormalConfirmar.addEventListener('click', async () => {
+  if (!revendedorDesactivarId) return;
+
+  try {
+    modalDesactivarNormalConfirmar.disabled = true;
+
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'desactivarRevendedorDirecto',
+        idVendedor: ID_REVENDEDOR,
+        idRevendedor: revendedorDesactivarId
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+   if (!datos.ok && datos.requiereSolicitud) {
+  const idObjetivo = revendedorDesactivarId;
+
+  modalDesactivarNormal.classList.remove('show');
+  revendedorDesactivarId = null;
+
+  openDesactivarModal(
+  idObjetivo,
+  revendedorDesactivarDatos.nombre,
+  revendedorDesactivarDatos.telefono,
+  revendedorDesactivarDatos.correo
+);
+  return;
+}
+
+if (!datos.ok) {
+  showToast(datos.mensaje || 'No se pudo desactivar el revendedor.', 'error');
+  return;
+}
+
+    modalDesactivarNormal.classList.remove('show');
+    revendedorDesactivarId = null;
+
+    showToast('Revendedor desactivado correctamente.', 'success');
+
+    await cargarRevendedoresDirectos();
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al desactivar el revendedor.', 'error');
+  } finally {
+    modalDesactivarNormalConfirmar.disabled = false;
+  }
+});
 
       // DESACTIVACIÓN ANTICIPADA
       const modalDesac = document.getElementById('modalDesactivacion');
@@ -1146,12 +1313,17 @@ const ID_REVENDEDOR = parametros.get('v');
       const modalDesacMotivo = document.getElementById('modalDesactivarMotivo');
       let targetRevId = null;
 
-      function openDesactivarModal(revId) {
-        targetRevId = revId;
-        modalDesacId.value = revId || '';
-        modalDesacMotivo.value = '';
-        modalDesac.classList.add('show');
-      }
+      function openDesactivarModal(revId, nombre = '', telefono = '', correo = '') {
+  targetRevId = revId;
+
+  document.getElementById('modalDesactivarId').textContent = revId || '—';
+  document.getElementById('modalDesactivarNombre').textContent = nombre || '—';
+  document.getElementById('modalDesactivarTelefono').textContent = telefono || '—';
+  document.getElementById('modalDesactivarCorreo').textContent = correo || '—';
+
+  modalDesacMotivo.value = '';
+  modalDesac.classList.add('show');
+}
 
       document.getElementById('modalDesactivarCancelar').addEventListener('click', () => {
         modalDesac.classList.remove('show');
@@ -1163,17 +1335,53 @@ const ID_REVENDEDOR = parametros.get('v');
           targetRevId = null;
         }
       });
-      document.getElementById('modalDesactivarConfirmar').addEventListener('click', () => {
-        const motivo = modalDesacMotivo.value.trim();
-        if (!motivo) {
-          showToast('Debes escribir un motivo.', 'error');
-          return;
-        }
-        // REQUIERE ENDPOINT BACKEND: solicitar desactivación anticipada
-        showToast('Esta acción requiere conexión con el backend.', 'info');
-        modalDesac.classList.remove('show');
-        targetRevId = null;
-      });
+      document.getElementById('modalDesactivarConfirmar').addEventListener('click', async () => {
+  const motivo = modalDesacMotivo.value.trim();
+
+  if (!motivo) {
+    showToast('Debes escribir un motivo.', 'error');
+    return;
+  }
+
+  if (!targetRevId) {
+    showToast('No se encontró el revendedor.', 'error');
+    return;
+  }
+
+  const boton = document.getElementById('modalDesactivarConfirmar');
+
+  try {
+    boton.disabled = true;
+
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'solicitarDesactivacionAnticipada',
+        idVendedor: ID_REVENDEDOR,
+        idRevendedor: targetRevId,
+        motivo: motivo
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudo enviar la solicitud.', 'error');
+      return;
+    }
+
+    modalDesac.classList.remove('show');
+    targetRevId = null;
+
+    showToast('Solicitud enviada correctamente.', 'success');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al enviar la solicitud.', 'error');
+  } finally {
+    boton.disabled = false;
+  }
+});
 
       // APROBAR VENTA
 const modalAprobarVenta = document.getElementById('modalAprobarVenta');
@@ -1277,26 +1485,42 @@ document.getElementById('modalRechazarVentaConfirmar').addEventListener('click',
       // --- FUNCIONES PARA ACCIONES (usadas desde botones dinámicos) ---
       window.accionesRevendedor = {
         activar: (id, nombre) => {
-          const msg = document.getElementById('activarMensaje');
-          msg.textContent = nombre ? `¿Deseas activar a ${nombre} (${id})?` : `¿Deseas activar al revendedor ${id}?`;
-          modalActivar.classList.add('show');
-        },
-        desactivar: (id, nombre, fechaFin) => {
-          const hoy = new Date();
-          const fin = new Date(fechaFin);
-          if (fin > hoy) {
-            openDesactivarModal(id);
-          } else {
-            const msg = document.getElementById('desactivarNormalMensaje');
-            msg.textContent = nombre ? `¿Deseas desactivar a ${nombre} (${id})?` : `¿Deseas desactivar al revendedor ${id}?`;
-            modalDesactivarNormal.classList.add('show');
-          }
-        },
+  revendedorActivarId = id;
+
+  const msg = document.getElementById('activarMensaje');
+  msg.textContent = nombre
+    ? `¿Deseas activar a ${nombre} (${id})?`
+    : `¿Deseas activar al revendedor ${id}?`;
+
+  modalActivar.classList.add('show');
+},
+       desactivar: (id, nombre, fechaFin, telefono, correo) => {
+  revendedorDesactivarId = id;
+
+  const msg = document.getElementById('desactivarNormalMensaje');
+  msg.textContent = nombre
+    ? `¿Deseas desactivar a ${nombre} (${id})?`
+    : `¿Deseas desactivar al revendedor ${id}?`;
+
+  revendedorDesactivarDatos = {
+    nombre: nombre || '',
+    telefono: telefono || '',
+    correo: correo || ''
+  };
+
+  modalDesactivarNormal.classList.add('show');
+},
+
         renovar: (id, nombre) => {
-          const msg = document.getElementById('renovarMensaje');
-          msg.textContent = nombre ? `¿Deseas renovar a ${nombre} (${id})?` : `¿Deseas renovar al revendedor ${id}?`;
-          modalRenovar.classList.add('show');
-        },
+  revendedorRenovarId = id;
+
+  const msg = document.getElementById('renovarMensaje');
+  msg.textContent = nombre
+    ? `¿Deseas renovar a ${nombre} (${id})?`
+    : `¿Deseas renovar al revendedor ${id}?`;
+
+  modalRenovar.classList.add('show');
+},
        aprobarVenta: (id) => {
   compraAprobarId = id;
   const msg = document.getElementById('aprobarVentaMensaje');
@@ -1312,19 +1536,55 @@ rechazarVenta: (id) => {
       };
 
       // --- ACTUALIZAR CUENTA (formulario) ---
-      document.getElementById('formCuenta').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const nombre = document.getElementById('editNombre').value.trim();
-        const telefono = document.getElementById('editTelefono').value.trim();
-        const correo = document.getElementById('editCorreo').value.trim();
-        const pass = document.getElementById('editPassword').value.trim();
-        if (!nombre || !telefono || !correo) {
-          showToast('Nombre, teléfono y correo son obligatorios.', 'error');
-          return;
-        }
-        // REQUIERE ENDPOINT BACKEND: actualizar datos personales
-        showToast('Esta acción requiere conexión con el backend.', 'info');
-      });
+document.getElementById('formCuenta').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const nombre = document.getElementById('editNombre').value.trim();
+  const telefono = document.getElementById('editTelefono').value.trim();
+  const correo = document.getElementById('editCorreo').value.trim();
+  const pass = document.getElementById('editPassword').value.trim();
+  const boton = document.querySelector('#formCuenta button[type="submit"]');
+
+  if (!nombre || !telefono || !correo) {
+    showToast('Nombre, teléfono y correo son obligatorios.', 'error');
+    return;
+  }
+
+  try {
+    boton.disabled = true;
+
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'actualizarPerfilRevendedor',
+        idVendedor: ID_REVENDEDOR,
+        usuario: nombre,
+        telefono: telefono,
+        correo: correo,
+        contrasena: pass
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudieron actualizar los datos.', 'error');
+      return;
+    }
+
+    document.getElementById('editPassword').value = '';
+
+    showToast('Datos actualizados correctamente.', 'success');
+
+    await cargarDatosRevendedor();
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al actualizar los datos.', 'error');
+  } finally {
+    boton.disabled = false;
+  }
+});
 
       // --- INICIALIZAR (todo neutro) ---
       function resetUI() {
@@ -1408,8 +1668,8 @@ rechazarVenta: (id) => {
     document.getElementById('dashEstado').innerHTML =
       `<span class="badge-estado badge-${r.estado}">${r.estado}</span>`;
     document.getElementById('dashMercado').textContent = r.mercado || '—';
-    document.getElementById('dashInicio').textContent = r.fechaInicio || '—';
-    document.getElementById('dashFin').textContent = r.fechaFin || '—';
+    document.getElementById('dashInicio').textContent = formatearFecha(r.fechaInicio);
+    document.getElementById('dashFin').textContent = formatearFecha(r.fechaFin);
 
     // Mi cuenta
     document.getElementById('cuentaId').textContent = r.idVendedor;
@@ -1424,8 +1684,8 @@ rechazarVenta: (id) => {
     cuentaEstado.textContent = r.estado;
     cuentaEstado.className = `badge-estado badge-${r.estado}`;
 
-    document.getElementById('cuentaInicio').textContent = r.fechaInicio || '—';
-    document.getElementById('cuentaFin').textContent = r.fechaFin || '—';
+    document.getElementById('cuentaInicio').textContent = formatearFecha(r.fechaInicio);
+    document.getElementById('cuentaFin').textContent = formatearFecha(r.fechaFin);
 
     document.getElementById('editNombre').value = r.usuario || '';
     document.getElementById('editTelefono').value = r.telefono || '';
@@ -1434,6 +1694,10 @@ rechazarVenta: (id) => {
     // Mi enlace
     document.getElementById('enlaceId').textContent = r.idVendedor;
     document.getElementById('enlaceNombre').textContent = r.usuario;
+const urlCaptacion = new URL('index.html', window.location.href);
+urlCaptacion.searchParams.set('v', r.idVendedor);
+
+document.getElementById('enlaceUrl').textContent = urlCaptacion.href;
   } catch (error) {
     console.error(error);
     showToast('Error al conectar con el backend.', 'error');
@@ -1514,9 +1778,25 @@ async function cargarVentasRevendedor() {
     }
 
     const compras = datos.compras || [];
-    const tabla = document.getElementById('tablaVentas');
+const tabla = document.getElementById('tablaVentas');
 
-    document.getElementById('cardVentas').textContent = compras.length;
+document.getElementById('cardVentas').textContent = compras.length;
+
+// Total de ventas APROBADAS de clientes.
+// Estas ventas pertenecen 100% al revendedor.
+const totalVentasAprobadas = compras
+  .filter(c => String(c.Estado_Pago || '').trim().toUpperCase() === 'APROBADO')
+  .reduce((total, c) => {
+    const importe = Number(
+      String(c.Total || '0')
+        .replace(/\s/g, '')
+        .replace(',', '.')
+    );
+
+    return total + (Number.isFinite(importe) ? importe : 0);
+  }, 0);
+
+document.getElementById('resVentasClientes').textContent = totalVentasAprobadas;
 
     if (compras.length === 0) {
       tabla.innerHTML = `
@@ -1574,13 +1854,260 @@ async function cargarVentasRevendedor() {
   }
 }
 
+async function cargarRevendedoresDirectos() {
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerRevendedoresDirectos',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudieron cargar los revendedores.', 'error');
+      return;
+    }
+
+    const revendedores = datos.revendedores || [];
+    const tabla = document.getElementById('tablaRevendedores');
+
+    document.getElementById('cardRevendedores').textContent = revendedores.length;
+
+    if (revendedores.length === 0) {
+      tabla.innerHTML = `
+        <tr>
+          <td colspan="10" class="empty-state">
+            <i class="fas fa-users-slash"></i> No hay revendedores directos.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tabla.innerHTML = revendedores.map(r => {
+      let acciones = '';
+
+      if (r.Estado === 'PENDIENTE') {
+        acciones = `
+          <button
+            class="btn btn-success"
+            onclick="accionesRevendedor.activar('${r.ID_Vendedor}', '${r.Usuario}')">
+            Activar
+          </button>
+        `;
+      } else {
+        acciones = `
+          <button
+            class="btn btn-warning"
+            onclick="accionesRevendedor.renovar('${r.ID_Vendedor}', '${r.Usuario}')">
+            Renovar
+          </button>
+
+          <button
+            class="btn btn-danger"
+            onclick="accionesRevendedor.desactivar('${r.ID_Vendedor}', '${r.Usuario}', '${r.Fecha_Fin}', '${r.Telefono}', '${r.Correo}')">
+            Desactivar
+          </button>
+        `;
+      }
+
+      return `
+        <tr>
+          <td>${r.ID_Vendedor || '—'}</td>
+          <td>${r.Usuario || '—'}</td>
+          <td>${r.Telefono || '—'}</td>
+          <td>${r.Correo || '—'}</td>
+          <td>${r.Mercado || '—'}</td>
+          <td>
+            <span class="badge-estado badge-${r.Estado}">
+              ${r.Estado || '—'}
+            </span>
+          </td>
+          <td>${r.Fecha_Inicio || '—'}</td>
+          <td>${r.Fecha_Fin || '—'}</td>
+          <td>${r.Precio_Reventa_Licencia || '—'}</td>
+          <td>
+            <div class="acciones-cell">
+              ${acciones}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al cargar los revendedores.', 'error');
+  }
+}
+
+
+async function cargarLicenciasRevendidas() {
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerReventasLicenciasRevendedor',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudieron cargar las licencias revendidas.', 'error');
+      return;
+    }
+
+    const reventas = datos.reventas || [];
+const tabla = document.getElementById('tablaLicencias');
+
+document.getElementById('cardLicencias').textContent = reventas.length;
+
+// Total realmente cobrado por el revendedor
+const totalReventas = reventas
+  .filter(r => String(r.Estado_Pago || '').trim().toUpperCase() === 'PAGADO')
+  .reduce((total, r) => {
+    const importe = Number(
+      String(r.Precio_Reventa || '0')
+        .replace(/\s/g, '')
+        .replace(',', '.')
+    );
+
+    return total + (Number.isFinite(importe) ? importe : 0);
+  }, 0);
+
+// Total que corresponde a PROPIETARIA.
+// Se usa el importe ya calculado y guardado en cada reventa.
+const totalPropietaria = reventas
+  .filter(r => String(r.Estado_Pago || '').trim().toUpperCase() === 'PAGADO')
+  .reduce((total, r) => {
+    const importe = Number(
+      String(r.Importe_Propietaria || '0')
+        .replace(/\s/g, '')
+        .replace(',', '.')
+    );
+
+    return total + (Number.isFinite(importe) ? importe : 0);
+  }, 0);
+
+document.getElementById('resReventas').textContent = totalReventas;
+document.getElementById('resPropietaria').textContent = totalPropietaria;
+document.getElementById('cardImportePropietaria').textContent = totalPropietaria;
+
+    if (reventas.length === 0) {
+      tabla.innerHTML = `
+        <tr>
+          <td colspan="9" class="empty-state">
+            <i class="fas fa-file-invoice"></i> No hay licencias revendidas.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tabla.innerHTML = reventas.map(r => `
+      <tr>
+        <td>${r.ID_Reventa || '—'}</td>
+        <td>${r.ID_NuevoRevendedor || '—'} — ${r.NuevoRevendedor || '—'}</td>
+        <td>${r.Mercado || '—'}</td>
+        <td>${r.Precio_Licencia || '—'}</td>
+        <td>${r.Precio_Reventa || '—'}</td>
+        <td>${r.Porcentaje_Propietaria || '—'}%</td>
+        <td>${r.Importe_Propietaria || '—'}</td>
+        <td>${r.Estado_Pago || '—'}</td>
+        <td>${r.Fecha || '—'}</td>
+      </tr>
+    `).join('');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al cargar las licencias revendidas.', 'error');
+  }
+}
+
+
+async function cargarRenovacionesRevendedor() {
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerRenovacionesRevendedor',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(datos.mensaje || 'No se pudieron cargar las renovaciones.', 'error');
+      return;
+    }
+
+    const renovaciones = datos.renovaciones || [];
+const tabla = document.getElementById('tablaRenovaciones');
+
+document.getElementById('cardRenovaciones').textContent = renovaciones.length;
+
+// Las renovaciones de sus revendedores directos
+// pertenecen 100% al revendedor que las cobra.
+const totalRenovaciones = renovaciones
+  .filter(r => String(r.Estado || '').trim().toUpperCase() === 'PAGADO')
+  .reduce((total, r) => {
+    const importe = Number(
+      String(r.Importe || '0')
+        .replace(/\s/g, '')
+        .replace(',', '.')
+    );
+
+    return total + (Number.isFinite(importe) ? importe : 0);
+  }, 0);
+
+document.getElementById('resRenovacionesCobradas').textContent = totalRenovaciones;
+
+    if (renovaciones.length === 0) {
+      tabla.innerHTML = `
+        <tr>
+          <td colspan="9" class="empty-state">
+            <i class="fas fa-sync-alt"></i> No hay renovaciones.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+   tabla.innerHTML = renovaciones.map(r => `
+  <tr>
+    <td>${r.ID_Renovacion || '—'}</td>
+    <td>${r.ID_Vendedor || '—'}</td>
+    <td>${r.Vendedor || '—'}</td>
+    <td>${r.Mercado || '—'}</td>
+    <td>${r.Importe || '—'}</td>
+    <td>${r.Fecha_Pago || '—'}</td>
+    <td>${r.Fecha_Anterior_Fin || '—'}</td>
+    <td>${r.Nueva_Fecha_Fin || '—'}</td>
+    <td>${r.Estado || '—'}</td>
+  </tr>
+`).join('');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al cargar las renovaciones.', 'error');
+  }
+}
+
 
 resetUI();
 navigateTo('inicio');
 cargarDatosRevendedor();
 cargarClientesRevendedor();
 cargarVentasRevendedor();
-
+cargarRevendedoresDirectos();
+cargarLicenciasRevendidas();
+cargarRenovacionesRevendedor();
     })();
   </script>
 </body>
