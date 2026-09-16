@@ -94,10 +94,12 @@ if (grupoPrecioReventa) {
 
 
   // =============================================
-  // 2. DATOS DE PRODUCTOS (DEMOSTRACIÓN)
-  // =============================================
-  const productosData = {
-    'plantillas-premium': {
+// 2. DATOS DE PRODUCTOS (DEMOSTRACIÓN)
+// =============================================
+let productosBackend = [];
+
+const productosData = {
+  'plantillas-premium': {
       title: 'PLANTILLAS PROFESIONALES PREMIUM',
       eyebrow: '✦ COLECCIÓN PREMIUM',
       desc: 'Herramientas digitales profesionales para gestionar diferentes áreas de tu negocio.',
@@ -131,19 +133,21 @@ if (grupoPrecioReventa) {
       desc: 'Recursos digitales en formato e-book con derechos PLR para diferentes usos.',
       products: [
         {
-          id: 'ebook-ejemplo-1',
-          name: 'E-Book PLR — Ejemplo 1',
-          description: 'Producto temporal utilizado para probar el funcionamiento del carrito.',
-          category: 'ebooks-plr',
-          icon: '📖'
-        },
-        {
-          id: 'ebook-ejemplo-2',
-          name: 'E-Book PLR — Ejemplo 2',
-          description: 'Producto temporal utilizado para probar el funcionamiento del carrito.',
-          category: 'ebooks-plr',
-          icon: '📘'
-        }
+  id: 'ebook-ejemplo-1',
+  name: 'E-Book PLR — Ejemplo 1',
+  description: 'Producto temporal utilizado para probar el funcionamiento del carrito.',
+  category: 'ebooks-plr',
+  icon: '📖',
+  price: 100
+},
+{
+  id: 'ebook-ejemplo-2',
+  name: 'E-Book PLR — Ejemplo 2',
+  description: 'Producto temporal utilizado para probar el funcionamiento del carrito.',
+  category: 'ebooks-plr',
+  icon: '📘',
+  price: 100
+}
       ]
     },
     'mockups': {
@@ -161,6 +165,36 @@ if (grupoPrecioReventa) {
       ]
     }
   };
+
+
+async function cargarProductosBackend() {
+  try {
+    const respuestaProductos = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerProductos'
+      })
+    });
+
+    const datosProductos = await respuestaProductos.json();
+if (!datosProductos.ok) {
+  console.error(
+    'No se pudieron cargar los productos:',
+    datosProductos.mensaje
+  );
+  return;
+}
+
+    if (datosProductos.ok) {
+  productosBackend = (datosProductos.productos || []).filter(producto =>
+    String(producto.Estado || '').trim().toUpperCase() === 'ACTIVO'
+  );
+}
+  } catch (error) {
+    console.error('Error al cargar productos:', error);
+  }
+}
+
 
   // Categorías que abren catálogo
   const categoriasConCatalogo = ['plantillas-premium', 'ebooks-plr', 'mockups'];
@@ -215,10 +249,11 @@ const loginContrasena = document.getElementById('loginContrasena');
 const loginError = document.getElementById('loginError');
   const formRegistro = document.getElementById('formRegistro');
   const regUsuario = document.getElementById('regUsuario');
-  const regTelefono = document.getElementById('regTelefono');
-  const regCorreo = document.getElementById('regCorreo');
-  const regContrasena = document.getElementById('regContrasena');
-  const formError = document.getElementById('formError');
+const regTelefono = document.getElementById('regTelefono');
+const regCorreo = document.getElementById('regCorreo');
+const regContrasena = document.getElementById('regContrasena');
+const regMercado = document.getElementById('regMercado');
+const formError = document.getElementById('formError');
 
   const modalConfirmarCompraOverlay = document.getElementById('modalConfirmarCompraOverlay');
   const modalConfirmarCompraClose = document.getElementById('modalConfirmarCompraClose');
@@ -298,7 +333,48 @@ const btnEnviarComprobanteRevendedor = document.getElementById('btnEnviarComprob
   // =============================================
   // 4. DATOS DE NOVEDADES (INICIALMENTE VACÍO)
   // =============================================
-  const novedades = [];
+  let novedades = [];
+
+async function cargarNotificacionesPagina() {
+  try {
+    const respuestaNotif = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerNotificacionesPagina'
+      })
+    });
+
+    const datosNotif = await respuestaNotif.json();
+
+    if (!datosNotif.ok) {
+      console.error(
+        'No se pudieron cargar las notificaciones:',
+        datosNotif.mensaje
+      );
+      return;
+    }
+
+    const notificacionesVistas = JSON.parse(
+  localStorage.getItem('zonaTotalNotificacionesVistas') || '[]'
+);
+
+novedades = (datosNotif.notificaciones || []).map(n => ({
+  id: n.ID_Notificacion,
+  nombre: n.Motivo || 'Actualización de precio',
+  fecha: n.Fecha || '',
+  nueva: !notificacionesVistas.includes(n.ID_Notificacion),
+  tipo: n.Tipo || ''
+}));
+
+    actualizarBadge();
+
+  } catch (error) {
+    console.error(
+      'Error al cargar las notificaciones de la página:',
+      error
+    );
+  }
+}
 
   // =============================================
   // 5. FUNCIONES DE NOTIFICACIONES
@@ -315,33 +391,84 @@ const btnEnviarComprobanteRevendedor = document.getElementById('btnEnviarComprob
   }
 
   function renderizarNotificaciones() {
-    const novedadesActivas = novedades.filter(item => item.nueva === true);
-    if (novedadesActivas.length === 0) {
-      notifBody.innerHTML = '<p class="notif-empty">No hay novedades por el momento.</p>';
-      return;
-    }
-    let html = '';
-    novedadesActivas.forEach(item => {
-      const fechaFormateada = item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES', {
-        day: '2-digit', month: '2-digit', year: 'numeric'
-      }) : 'Recientemente';
-      html += `
-        <button class="notif-item-btn" data-target="${item.id}" aria-label="Ir a ${item.nombre}">
-          <span class="notif-tag">NUEVO</span>
-          <span class="notif-name">${item.nombre}</span>
-          <span class="notif-date">Agregado el ${fechaFormateada}</span>
-        </button>
-      `;
-    });
-    notifBody.innerHTML = html;
-    notifBody.querySelectorAll('.notif-item-btn').forEach(btn => {
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const targetId = this.getAttribute('data-target');
-        irANovedad(targetId);
-      });
-    });
+  const novedadesActivas = novedades.filter(item => item.nueva === true);
+
+  if (novedadesActivas.length === 0) {
+    notifBody.innerHTML =
+      '<p class="notif-empty">No hay novedades por el momento.</p>';
+    return;
   }
+
+  let html = '';
+
+  novedadesActivas.forEach(item => {
+    const esMensualidad = item.tipo === 'PRECIO_MENSUALIDAD';
+    const esProducto = item.tipo === 'PRECIO_PRODUCTO';
+
+    const titulo = esProducto
+  ? 'Nuevo precio de producto'
+  : esMensualidad
+    ? 'Nueva mensualidad'
+    : 'Nuevo precio oficial de licencia';
+
+    const claseIcono = esProducto
+  ? 'producto'
+  : esMensualidad
+    ? 'mensualidad'
+    : 'licencia';
+
+    const icono = esProducto
+  ? `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7l8-4 8 4-8 4-8-4z"></path>
+      <path d="M4 7v10l8 4 8-4V7"></path>
+      <path d="M12 11v10"></path>
+    </svg>
+  `
+  : esMensualidad
+    ? `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <ellipse cx="12" cy="5" rx="7" ry="3"></ellipse>
+        <path d="M5 5v5c0 1.7 3.1 3 7 3s7-1.3 7-3V5"></path>
+        <path d="M5 10v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"></path>
+        <path d="M5 15v4c0 1.7 3.1 3 7 3s7-1.3 7-3v-4"></path>
+      </svg>
+    `
+    : `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="5" y="3" width="14" height="18" rx="2"></rect>
+        <path d="M9 8h6"></path>
+        <path d="M9 12h6"></path>
+        <path d="M9 16h4"></path>
+      </svg>
+    `;
+
+    let mensaje = item.nombre || '';
+
+    mensaje = mensaje
+      .replace(/^Precio oficial de licencia actualizado\.\s*/i, '')
+      .replace(/^Mensualidad actualizada\.\s*/i, '')
+      .replace(/\s+Nuevo:/i, ' → Nuevo:');
+
+    html += `
+      <div class="notif-item">
+        <div class="notif-item-icon ${claseIcono}">
+          ${icono}
+        </div>
+
+        <div class="notif-item-content">
+          <div class="notif-item-title">${titulo}</div>
+          <div class="notif-item-message">${mensaje}</div>
+          <div class="notif-item-date">${item.fecha || ''}</div>
+        </div>
+
+        <span class="notif-unread-dot"></span>
+      </div>
+    `;
+  });
+
+  notifBody.innerHTML = html;
+}
 
   function abrirNotificaciones() {
     if (isNotifOpen) return;
@@ -523,6 +650,11 @@ const btnEnviarComprobanteRevendedor = document.getElementById('btnEnviarComprob
   }
 
   function agregarAlCarrito(producto) {
+if (!currentUser) {
+  pendingAction = 'compra';
+  abrirModal(modalRegistroRequeridoOverlay);
+  return;
+}
     if (estaEnCarrito(producto.id)) return;
     cart.push({ ...producto });
     actualizarBadgeCarrito();
@@ -614,8 +746,39 @@ const btnEnviarComprobanteRevendedor = document.getElementById('btnEnviarComprob
   // 12. ABRIR COLECCIÓN (CATÁLOGO)
   // =============================================
   function abrirColeccion(categoryId) {
-  const data = productosData[categoryId];
-  if (!data) return;
+  let data = productosData[categoryId];
+if (!data) return;
+
+if (categoryId === 'plantillas-premium') {
+  const productosReales = productosBackend
+    .filter(producto =>
+      String(producto.Categoria || '').trim().toLowerCase() === 'plantillas premium' &&
+      String(producto.Estado || '').trim().toUpperCase() === 'ACTIVO'
+    )
+    .map(producto => ({
+      id: producto.ID_Producto,
+      name: producto.Nombre,
+      description: producto.Descripcion,
+      category: 'plantillas-premium',
+      icon: '📄',
+      precioCuba: Number(producto.Precio_Cuba) || 0,
+      precioExtranjero: Number(producto.Precio_Extranjero) || 0,
+      formato: producto.Formato,
+      idArchivoDrive: producto.ID_Archivo_Drive,
+price: currentUser
+  ? (
+      currentUser.mercado === 'EXTRANJERO'
+        ? Number(producto.Precio_Extranjero) || 0
+        : Number(producto.Precio_Cuba) || 0
+    )
+  : 0
+    }));
+
+  data = {
+    ...data,
+    products: productosReales
+  };
+}
 
   currentCategory = categoryId;
 
@@ -626,24 +789,25 @@ const btnEnviarComprobanteRevendedor = document.getElementById('btnEnviarComprob
   const esPropietaria =
     currentUser && currentUser.role === 'propietaria';
 
-  let html = '';
+let html = '';
 
-  data.products.forEach(product => {
-    const inCart = estaEnCarrito(product.id);
+data.products.forEach(product => {
+  const inCart = estaEnCarrito(product.id);
 
-    let btnClass = '';
-    let btnText = '';
-    let btnDisabled = '';
+  const precioProducto = Number(product.price) || 0;
 
-    if (esPropietaria) {
-      btnClass = 'btn-primary btn-acceso-propietaria';
-      btnText = 'ABRIR PRODUCTO';
-    } else {
-      btnClass = inCart ? 'btn-in-cart' : 'btn-primary btn-add-cart';
-      btnText = inCart ? '✓ EN EL CARRITO' : 'AGREGAR AL CARRITO';
-      btnDisabled = inCart ? 'disabled' : '';
-    }
+  let btnClass = '';
+  let btnText = '';
+  let btnDisabled = '';
 
+  if (esPropietaria) {
+    btnClass = 'btn-primary btn-acceso-propietaria';
+    btnText = 'ABRIR PRODUCTO';
+  } else {
+    btnClass = inCart ? 'btn-in-cart' : 'btn-primary btn-add-cart';
+    btnText = inCart ? '✓ EN EL CARRITO' : 'AGREGAR AL CARRITO';
+    btnDisabled = inCart ? 'disabled' : '';
+  }
     html += `
       <div class="producto-card">
         <div class="producto-visual">
@@ -653,9 +817,18 @@ const btnEnviarComprobanteRevendedor = document.getElementById('btnEnviarComprob
         <div class="producto-info">
           <span class="producto-categoria">${data.title}</span>
           <h4 class="producto-nombre">${product.name}</h4>
-          <p class="producto-desc">${product.description}</p>
+<p class="producto-desc">${product.description}</p>
 
-          <button
+${categoryId === 'plantillas-premium' ? `
+  <div class="producto-precio">
+    ${currentUser
+      ? `${precioProducto} ${currentUser.mercado === 'EXTRANJERO' ? 'USD/EUR' : 'CUP'}`
+      : `${product.precioCuba} CUP · ${product.precioExtranjero} USD/EUR`
+    }
+  </div>
+` : ''}
+
+<button
             class="btn ${btnClass}"
             data-product-id="${product.id}"
             ${btnDisabled}
@@ -703,9 +876,9 @@ const btnEnviarComprobanteRevendedor = document.getElementById('btnEnviarComprob
             p => p.id === productId
           );
 
-          if (productData) {
-            agregarAlCarrito(productData);
-          }
+ if (productData) {
+  agregarAlCarrito(productData);
+}
         });
       });
   }
@@ -990,7 +1163,8 @@ if (datosCliente.ok) {
     role: 'cliente',
     idVendedor: datosCliente.idVendedor,
     vendedor: datosCliente.vendedor,
-    telefonoVendedor: datosCliente.telefonoVendedor
+    telefonoVendedor: datosCliente.telefonoVendedor,
+    mercado: datosCliente.mercado
   };
 guardarSesion();
 
@@ -1054,8 +1228,9 @@ return;
       const telefono = regTelefono.value.trim();
       const correo = regCorreo.value.trim();
       const contrasena = regContrasena.value.trim();
+      const mercado = regMercado.value.trim();
 
-      if (!usuario || !telefono || !correo || !contrasena) {
+      if (!usuario || !telefono || !correo || !contrasena || !mercado) {
         formError.textContent = 'Todos los campos son obligatorios.';
         formError.style.display = 'block';
         return;
@@ -1093,6 +1268,7 @@ try {
       telefono: telefono,
       correo: correo,
       contrasena: contrasena,
+      mercado: mercado,
       idVendedor: vendedorActual.id,
       vendedor: vendedorActual.nombre
     })
@@ -1114,7 +1290,8 @@ try {
   role: 'cliente',
   idVendedor: vendedorActual.id,
   vendedor: vendedorActual.nombre,
-  telefonoVendedor: vendedorActual.telefono
+  telefonoVendedor: vendedorActual.telefono,
+  mercado: mercado
 };
 
 guardarSesion();
@@ -1725,11 +1902,30 @@ function actualizarHeader() {
   // 23. NOTIFICACIONES - EVENTOS
   // =============================================
   if (btnNotif) {
-    btnNotif.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (isNotifOpen) { cerrarNotificaciones(); } else { abrirNotificaciones(); }
-    });
-  }
+  btnNotif.addEventListener('click', function(e) {
+    e.stopPropagation();
+
+    if (isNotifOpen) {
+      cerrarNotificaciones();
+    } else {
+      abrirNotificaciones();
+
+      // Al abrir la campana, todas las notificaciones
+      // actuales se consideran vistas.
+      novedades.forEach(item => {
+        item.nueva = false;
+      });
+
+      const idsVistos = novedades.map(item => item.id);
+      localStorage.setItem(
+        'zonaTotalNotificacionesVistas',
+        JSON.stringify(idsVistos)
+      );
+
+      actualizarBadge();
+    }
+  });
+}
 
   if (notifClose) {
     notifClose.addEventListener('click', function(e) { e.stopPropagation(); cerrarNotificaciones(); });
@@ -1749,6 +1945,12 @@ actualizarBadge();
 actualizarHeader();
 actualizarBadgeCarrito();
 cargarVendedorDelEnlace();
+cargarProductosBackend().then(() => {
+  if (currentCategory) {
+    abrirColeccion(currentCategory);
+  }
+});
+cargarNotificacionesPagina();
 
   console.log('Zona Total Servicios — Página funcionando correctamente.');
   console.log('Novedades activas:', novedades.filter(item => item.nueva === true).length);
