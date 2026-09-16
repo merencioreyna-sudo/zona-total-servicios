@@ -1103,9 +1103,10 @@ function formatearFecha(fecha) {
       });
 
       // --- NOTIFICACIONES BELL ---
-      notifBell.addEventListener('click', () => {
-        navigateTo('notificaciones');
-      });
+      notifBell.addEventListener('click', async () => {
+  navigateTo('notificaciones');
+  await marcarNotificacionesComoVistas();
+});
 
       // --- COPIAR ENLACE ---
       document.getElementById('copiarEnlaceBtn').addEventListener('click', () => {
@@ -2075,6 +2076,261 @@ document.getElementById('cardImportePropietaria').innerHTML =
 }
 
 
+async function marcarNotificacionesComoVistas() {
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerNotificacionesRevendedor',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) return;
+
+    const noVistas = (datos.notificaciones || []).filter(n =>
+      String(n.Vista || '').trim().toUpperCase() !== 'SI'
+    );
+
+    for (const n of noVistas) {
+      await fetch(BACKEND_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'marcarNotificacionVista',
+          idNotificacion: n.ID_Notificacion
+        })
+      });
+    }
+
+    await cargarNotificacionesRevendedor();
+
+  } catch (error) {
+    console.error('Error al marcar notificaciones como vistas:', error);
+  }
+}
+
+
+async function cargarNotificacionesRevendedor() {
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerNotificacionesRevendedor',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(
+        datos.mensaje || 'No se pudieron cargar las notificaciones.',
+        'error'
+      );
+      return;
+    }
+
+    const notificaciones = datos.notificaciones || [];
+
+// Primero las NO VISTAS (nuevas), después las ya vistas.
+notificaciones.sort((a, b) => {
+  const aVista =
+    String(a.Vista || '').trim().toUpperCase() === 'SI';
+
+  const bVista =
+    String(b.Vista || '').trim().toUpperCase() === 'SI';
+
+  if (aVista !== bVista) {
+    return aVista ? 1 : -1;
+  }
+
+  // Dentro de cada grupo, la más reciente primero.
+  return String(b.ID_Notificacion || '').localeCompare(
+    String(a.ID_Notificacion || ''),
+    undefined,
+    { numeric: true }
+  );
+});
+
+const lista = document.getElementById('notificacionesList');
+
+    // El contador muestra solamente las NO VISTAS.
+    const noVistas = notificaciones.filter(n =>
+      String(n.Vista || '').trim().toUpperCase() !== 'SI'
+    ).length;
+
+    if (noVistas > 0) {
+      notifCounter.textContent = noVistas;
+      notifCounter.style.display = 'inline-block';
+    } else {
+      notifCounter.textContent = '0';
+      notifCounter.style.display = 'none';
+    }
+
+    if (notificaciones.length === 0) {
+      lista.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-inbox"></i> No hay notificaciones.
+        </div>
+      `;
+      return;
+    }
+
+    lista.innerHTML = notificaciones.map(n => {
+
+      const tipo = String(n.Tipo || '').trim();
+      const respuesta = String(n.Respuesta || '').trim().toUpperCase();
+      const esNueva =
+  String(n.Vista || '').trim().toUpperCase() !== 'SI';
+
+const etiquetaNueva = esNueva
+  ? `<span style="
+      margin-left:0.6rem;
+      background:#b31b1b;
+      color:white;
+      padding:0.18rem 0.55rem;
+      border-radius:20px;
+      font-size:0.65rem;
+      font-weight:700;
+    ">NUEVA</span>`
+  : '';
+
+      let titulo = 'Notificación';
+      let icono = 'fa-bell';
+      let color = '#b31b1b';
+      let detalle = '';
+
+      if (tipo === 'NUEVO_REVENDEDOR_DIRECTO') {
+        titulo = 'Nuevo revendedor directo';
+        icono = 'fa-user-plus';
+
+        detalle = `
+          <div style="margin-top:0.5rem;">
+            <strong>
+              ${n.ID_Solicitante || '—'} — ${n.Solicitante || '—'}
+            </strong>
+          </div>
+        `;
+      }
+
+      else if (tipo === 'NUEVA_COMPRA') {
+        titulo = 'Nueva compra de cliente';
+        icono = 'fa-shopping-cart';
+
+        detalle = `
+          <div style="margin-top:0.5rem;">
+            <strong>
+              ${n.ID_Solicitante || '—'} — ${n.Solicitante || '—'}
+            </strong>
+          </div>
+        `;
+      }
+
+      else if (tipo === 'RESULTADO_DESACTIVACION_ANTICIPADA') {
+
+        if (respuesta === 'APROBADA') {
+          titulo = 'Desactivación aprobada';
+          icono = 'fa-check-circle';
+          color = '#1f8b4a';
+        } else {
+          titulo = 'Desactivación rechazada';
+          icono = 'fa-times-circle';
+          color = '#b31b1b';
+        }
+
+        if (
+          respuesta === 'RECHAZADA' &&
+          String(n.Motivo_Respuesta || '').trim()
+        ) {
+          detalle = `
+            <div style="
+              margin-top:0.7rem;
+              padding:0.7rem 0.9rem;
+              background:#fff;
+              border-radius:12px;
+              border:1px solid #ede5e1;
+            ">
+              <strong>Motivo del rechazo:</strong><br>
+              ${n.Motivo_Respuesta}
+            </div>
+          `;
+        }
+      }
+
+      else if (tipo === 'CAMBIO_RESPONSABLE') {
+        titulo = 'Cambio de revendedor responsable';
+        icono = 'fa-exchange-alt';
+        color = '#b31b1b';
+      }
+
+     else if (tipo === 'CAMBIO_ADMINISTRATIVO') {
+  titulo = 'Actualización administrativa';
+  icono = 'fa-user-edit';
+  color = '#b31b1b';
+}
+
+else if (tipo === 'NUEVO_REVENDEDOR_ASIGNADO') {
+  titulo = '¡Tu equipo sigue creciendo!';
+  icono = 'fa-user-plus';
+  color = '#b31b1b';
+}
+
+else if (tipo === 'PRECIO_LICENCIA') {
+  titulo = 'Precio oficial de licencia actualizado';
+  icono = 'fa-certificate';
+  color = '#b31b1b';
+}
+
+else if (tipo === 'PRECIO_MENSUALIDAD') {
+  titulo = 'Mensualidad actualizada';
+  icono = 'fa-calendar-check';
+  color = '#b31b1b';
+}
+
+else if (tipo === 'PRECIO_PRODUCTO') {
+  titulo = 'Precio de producto actualizado';
+  icono = 'fa-box';
+  color = '#e67e22';
+}
+
+return `
+        <div style="
+          background:#faf5f2;
+          border:1px solid #ede5e1;
+          border-radius:18px;
+          padding:1rem 1.2rem;
+        ">
+          <div style="font-weight:700; color:#1c0f0b;">
+  <i
+    class="fas ${icono}"
+    style="color:${color};">
+  </i>
+  ${titulo}${etiquetaNueva}
+</div>
+
+          ${detalle}
+
+          <div class="text-muted" style="margin-top:0.5rem; white-space:pre-line;">
+            ${n.Motivo || ''}
+          </div>
+
+          <div class="text-muted" style="margin-top:0.35rem; color:#1f8b4a;">
+  <i class="fas fa-check-circle"></i>
+  <strong> Notificación recibida:</strong> ${n.Fecha || ''}
+</div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error(error);
+    showToast('Error al cargar las notificaciones.', 'error');
+  }
+}
+
+
 async function cargarRenovacionesRevendedor() {
   try {
     const respuestaBackend = await fetch(BACKEND_URL, {
@@ -2153,6 +2409,7 @@ cargarVentasRevendedor();
 cargarRevendedoresDirectos();
 cargarLicenciasRevendidas();
 cargarRenovacionesRevendedor();
+cargarNotificacionesRevendedor();
     })();
   </script>
 </body>
