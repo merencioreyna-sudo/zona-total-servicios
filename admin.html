@@ -1594,7 +1594,23 @@ ${r.Estado !== 'PENDIENTE' ? `<button class="btn btn-warning btn-sm" onclick="re
     }
 
     const opcionesReferidos = (state.revendedores || [])
-        .filter(r => r.ID_Vendedor !== id)
+        .filter(r => {
+    if (r.ID_Vendedor === id) return false;
+
+    let actual = r;
+
+    while (actual && actual.ID_ReferidoPor !== 'PROPIETARIA') {
+        if (actual.ID_ReferidoPor === id) {
+            return false;
+        }
+
+        actual = (state.revendedores || []).find(
+            x => x.ID_Vendedor === actual.ID_ReferidoPor
+        );
+    }
+
+    return true;
+})
         .map(r => `
             <option
                 value="${r.ID_Vendedor}"
@@ -2204,9 +2220,26 @@ function renderNotificaciones() {
                                 }
                             </strong>
 
-                            <span class="badge ${pendiente ? 'pendiente' : 'aprobado'}">
-                                ${pendiente ? 'PENDIENTE' : n.Respuesta}
-                            </span>
+                            ${n.Tipo === 'DESACTIVACION_ANTICIPADA'
+    ? `
+        <span class="badge ${pendiente ? 'pendiente' : 'aprobado'}">
+            ${pendiente ? 'PENDIENTE' : n.Respuesta}
+        </span>
+      `
+    : `
+        <span class="badge ${
+            String(n.Vista || '').trim().toUpperCase() === 'SI'
+                ? 'aprobado'
+                : 'pendiente'
+        }">
+            ${
+                String(n.Vista || '').trim().toUpperCase() === 'SI'
+                    ? 'VISTA'
+                    : 'NUEVA'
+            }
+        </span>
+      `
+}
                         </div>
 
                         <div class="detail-row">
@@ -2249,20 +2282,113 @@ function renderNotificaciones() {
                         </div>
 
                         <div style="margin-top:1rem;">
-                            <strong>Motivo de la solicitud</strong>
+                            <strong>
+    ${n.Tipo === 'ACTUALIZACION_PERFIL'
+        ? 'Cambios realizados'
+        : n.Tipo === 'DESACTIVACION_ANTICIPADA'
+            ? 'Motivo de la solicitud'
+            : 'Información'
+    }
+</strong>
 
-                            <div style="
-                                margin-top:0.5rem;
-                                padding:1rem;
-                                background:white;
-                                border:1px solid #e2e8f0;
-                                border-radius:14px;
-                                line-height:1.6;
-                                white-space:normal;
-                                overflow-wrap:anywhere;
-                            ">
-                                ${n.Motivo || '—'}
-                            </div>
+                            ${n.Tipo === 'ACTUALIZACION_PERFIL'
+    ? (() => {
+        const cambios = String(n.Motivo || '')
+            .split('\n')
+            .map(x => x.trim())
+            .filter(Boolean);
+
+        const filas = cambios.map(cambio => {
+
+            if (cambio === 'Contraseña modificada') {
+                return `
+                    <div style="
+                        grid-column:1 / -1;
+                        padding:0.7rem 0;
+                        border-top:1px solid #e2e8f0;
+                        font-weight:600;
+                    ">
+                        🔒 Contraseña modificada
+                    </div>
+                `;
+            }
+
+            const partes = cambio.split(' → ');
+
+            if (partes.length !== 2) {
+                return `
+                    <div style="grid-column:1 / -1;">
+                        ${cambio}
+                    </div>
+                `;
+            }
+
+            const izquierda = partes[0];
+            const nuevo = partes[1];
+
+            const separador = izquierda.indexOf(':');
+            const campo = separador >= 0
+                ? izquierda.substring(0, separador).trim()
+                : '';
+
+            const anterior = separador >= 0
+                ? izquierda.substring(separador + 1).trim()
+                : izquierda;
+
+            return `
+                <div style="padding:0.65rem 0;">
+                    <strong>${campo}</strong>
+                    <div>${anterior || '—'}</div>
+                </div>
+
+                <div style="padding:0.65rem 0;">
+                    <strong>${campo}</strong>
+                    <div>${nuevo || '—'}</div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div style="
+                margin-top:0.5rem;
+                padding:1rem;
+                background:white;
+                border:1px solid #e2e8f0;
+                border-radius:14px;
+            ">
+                <div style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+                    gap:0 1.5rem;
+                ">
+                    <div style="font-weight:700; margin-bottom:0.5rem;">
+                        DATOS ANTERIORES
+                    </div>
+
+                    <div style="font-weight:700; margin-bottom:0.5rem;">
+                        DATOS NUEVOS
+                    </div>
+
+                    ${filas}
+                </div>
+            </div>
+        `;
+    })()
+    : `
+        <div style="
+            margin-top:0.5rem;
+            padding:1rem;
+            background:white;
+            border:1px solid #e2e8f0;
+            border-radius:14px;
+            line-height:1.6;
+            white-space:normal;
+            overflow-wrap:anywhere;
+        ">
+            ${n.Motivo || '—'}
+        </div>
+    `
+}
                         </div>
 
                         <div style="
@@ -2273,26 +2399,49 @@ function renderNotificaciones() {
                             ${n.Fecha || '—'}
                         </div>
 
-                        ${pendiente && n.Tipo === 'DESACTIVACION_ANTICIPADA'
-                            ? `
-                                <div class="modal-actions">
-                                    <button
-    class="btn btn-success"
-    onclick="resolverNotificacion('${n.ID_Notificacion}', 'APROBAR', this)"
->
-    Aprobar
-</button>
+                        ${n.Tipo === 'DESACTIVACION_ANTICIPADA'
+    ? (
+        pendiente
+            ? `
+                <div class="modal-actions">
+                    <button
+                        class="btn btn-success"
+                        onclick="resolverNotificacion('${n.ID_Notificacion}', 'APROBAR', this)"
+                    >
+                        Aprobar
+                    </button>
 
-<button
-    class="btn btn-danger"
-    onclick="resolverNotificacion('${n.ID_Notificacion}', 'RECHAZAR', this)"
->
-    Rechazar
-</button>
-                                </div>
-                              `
-                            : ''
-                        }
+                    <button
+                        class="btn btn-danger"
+                        onclick="resolverNotificacion('${n.ID_Notificacion}', 'RECHAZAR', this)"
+                    >
+                        Rechazar
+                    </button>
+                </div>
+              `
+            : ''
+      )
+    : `
+        <div class="modal-actions">
+            ${
+                String(n.Vista || '').trim().toUpperCase() === 'SI'
+                    ? `
+                        <button class="btn btn-sm" disabled>
+                            ✓ Vista
+                        </button>
+                      `
+                    : `
+                        <button
+                            class="btn btn-primary btn-sm"
+                            onclick="marcarNotificacionAdminVista('${n.ID_Notificacion}', this)"
+                        >
+                            👁️ Marcar como vista
+                        </button>
+                      `
+            }
+        </div>
+      `
+}
 
                     </div>
                 `;
@@ -2327,20 +2476,129 @@ tarjetasNotificacion.forEach(tarjeta => {
 }
 
 
+window.marcarNotificacionAdminVista = async function(idNotificacion, btn) {
+    if (!idNotificacion) return;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Marcando...';
+    }
+
+    try {
+        const result = await callBackend(
+            'marcarNotificacionVista',
+            { idNotificacion: idNotificacion }
+        );
+
+        if (!result.ok) {
+            throw new Error(
+                result.mensaje || 'No se pudo marcar la notificación como vista.'
+            );
+        }
+
+        // Actualizar inmediatamente esta notificación en memoria
+        const notificacion = state.notificaciones.find(
+            n => n.ID_Notificacion === idNotificacion
+        );
+
+        if (notificacion) {
+            notificacion.Vista = 'SI';
+        }
+
+        // Bajar el contador inmediatamente
+        actualizarContadorNotificaciones();
+
+        // Actualizar las tarjetas sin recargar el navegador
+        renderNotificaciones();
+
+    } catch (error) {
+        showToast('Error: ' + error.message);
+
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '👁️ Marcar como vista';
+        }
+    }
+};
+
 window.resolverNotificacion = async function(idNotificacion, decision, btn) {
 
     const esAprobar = decision === 'APROBAR';
+    let motivoRespuesta = '';
 
-    const confirmado = await confirmarAccion(
-        esAprobar ? 'Aprobar solicitud' : 'Rechazar solicitud',
-        esAprobar
-            ? '¿Seguro que deseas aprobar esta desactivación anticipada? El revendedor y su red dependiente quedarán INACTIVOS.'
-            : '¿Seguro que deseas rechazar esta solicitud de desactivación anticipada?',
-        esAprobar ? 'Sí, aprobar' : 'Sí, rechazar',
-        esAprobar ? 'success' : 'danger'
-    );
+    // APROBAR: mantiene la confirmación normal.
+    if (esAprobar) {
 
-    if (!confirmado) return;
+        const confirmado = await confirmarAccion(
+            'Aprobar solicitud',
+            '¿Seguro que deseas aprobar esta desactivación anticipada? El revendedor y su red dependiente quedarán INACTIVOS.',
+            'Sí, aprobar',
+            'success'
+        );
+
+        if (!confirmado) return;
+
+    } else {
+
+        // RECHAZAR: pedir obligatoriamente el motivo.
+        motivoRespuesta = await new Promise((resolve) => {
+
+            openModal(`
+                <h2>Rechazar solicitud</h2>
+
+                <p style="color:#475569; line-height:1.6; margin-bottom:1rem;">
+                    Indica al revendedor por qué estás rechazando
+                    esta solicitud de desactivación anticipada.
+                </p>
+
+                <div class="form-group">
+                    <label>Motivo del rechazo</label>
+                    <textarea
+                        id="motivoRechazoDesactivacion"
+                        rows="4"
+                        placeholder="Escribe aquí la explicación..."
+                    ></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn" id="cancelarRechazoSolicitud">
+                        Cancelar
+                    </button>
+
+                    <button class="btn btn-danger" id="confirmarRechazoSolicitud">
+                        Confirmar rechazo
+                    </button>
+                </div>
+            `);
+
+            document.getElementById(
+                'cancelarRechazoSolicitud'
+            ).onclick = () => {
+                closeModal();
+                resolve(null);
+            };
+
+            document.getElementById(
+                'confirmarRechazoSolicitud'
+            ).onclick = () => {
+
+                const motivo = document
+                    .getElementById('motivoRechazoDesactivacion')
+                    .value
+                    .trim();
+
+                if (!motivo) {
+                    showToast('Debes escribir el motivo del rechazo');
+                    return;
+                }
+
+                closeModal();
+                resolve(motivo);
+            };
+        });
+
+        if (motivoRespuesta === null) return;
+    }
 
     if (btn) btn.disabled = true;
 
@@ -2350,7 +2608,8 @@ window.resolverNotificacion = async function(idNotificacion, decision, btn) {
             'resolverDesactivacionAnticipada',
             {
                 idNotificacion: idNotificacion,
-                decision: decision
+                decision: decision,
+                motivoRespuesta: motivoRespuesta
             }
         );
 
@@ -2383,7 +2642,6 @@ window.resolverNotificacion = async function(idNotificacion, decision, btn) {
         if (btn) btn.disabled = false;
     }
 };
-
 
      // ----- RENDER PRODUCTOS -----
         function renderProductos() {
