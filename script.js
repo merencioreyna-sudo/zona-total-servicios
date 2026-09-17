@@ -169,32 +169,30 @@ const productosData = {
 
 async function cargarProductosBackend() {
   try {
-    const respuestaProductos = await fetch(BACKEND_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        accion: 'obtenerProductos'
-      })
-    });
+    const response = await fetch(
+      `${BACKEND_URL}?accion=obtenerProductos`
+    );
 
-    const datosProductos = await respuestaProductos.json();
-if (!datosProductos.ok) {
-  console.error(
-    'No se pudieron cargar los productos:',
-    datosProductos.mensaje
-  );
-  return;
-}
+    const data = await response.json();
 
-    if (datosProductos.ok) {
-  productosBackend = (datosProductos.productos || []).filter(producto =>
-    String(producto.Estado || '').trim().toUpperCase() === 'ACTIVO'
-  );
-}
+    if (!data.ok) {
+      console.error('Error al obtener productos:', data.mensaje);
+      productosBackend = [];
+      return;
+    }
+
+    productosBackend = (data.productos || []).filter(
+      producto =>
+        String(producto.Estado || '').trim().toUpperCase() === 'ACTIVO'
+    );
+
+    console.log('PRODUCTOS CARGADOS:', productosBackend.length);
+
   } catch (error) {
     console.error('Error al cargar productos:', error);
+    productosBackend = [];
   }
 }
-
 
   // Categorías que abren catálogo
   const categoriasConCatalogo = ['plantillas-premium', 'ebooks-plr', 'mockups'];
