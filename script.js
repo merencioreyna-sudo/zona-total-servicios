@@ -41,10 +41,20 @@ function cerrarSesion() {
     role: 'propietaria'
   };
 
-  let cart = [];                   // Array de productos { id, name, category, description }
+  let cart = [];
+
+try {
+  const seleccionGuardada = sessionStorage.getItem('zonaTotalSeleccionCompra');
+
+  if (seleccionGuardada) {
+    cart = JSON.parse(seleccionGuardada);
+  }
+} catch (error) {
+  cart = [];
+}                   // Array de productos { id, name, category, description }
   let pendingAction = null;        // 'compra' | 'revendedor'
   let currentCategory = null;      // Para saber qué categoría está abierta
-
+  let plantillaSeleccionada = null;
 // =============================================
 // VENDEDOR DEL ENLACE
 // =============================================
@@ -128,42 +138,35 @@ const productosData = {
       ]
     },
     'ebooks-plr': {
-      title: 'E-BOOKS PLR',
-      eyebrow: '✦ COLECCIÓN DIGITAL',
-      desc: 'Recursos digitales en formato e-book con derechos PLR para diferentes usos.',
-      products: [
-        {
-  id: 'ebook-ejemplo-1',
-  name: 'E-Book PLR — Ejemplo 1',
-  description: 'Producto temporal utilizado para probar el funcionamiento del carrito.',
-  category: 'ebooks-plr',
-  icon: '📖',
-  price: 100
+  title: 'E-BOOKS PLR',
+  eyebrow: '✦ COLECCIÓN DIGITAL',
+  desc: 'Recursos digitales en formato e-book con derechos PLR para diferentes usos.',
+  products: []
 },
-{
-  id: 'ebook-ejemplo-2',
-  name: 'E-Book PLR — Ejemplo 2',
-  description: 'Producto temporal utilizado para probar el funcionamiento del carrito.',
-  category: 'ebooks-plr',
-  icon: '📘',
-  price: 100
+      'mockups': {
+  title: 'PACK PROFESIONAL DE MOCKUPS',
+  eyebrow: '✦ COLECCIÓN VISUAL',
+  desc: 'Recursos visuales profesionales para presentar diseños y proyectos.',
+  products: []
+},
+    'biblioteca-premium': {
+  title: 'BIBLIOTECA PREMIUM',
+  eyebrow: '✦ COLECCIÓN DIGITAL',
+  desc: 'Recursos digitales premium disponibles en Zona Total.',
+  products: []
+},
+'redes-sociales': {
+  title: 'KIT PROFESIONAL REDES SOCIALES',
+  eyebrow: '✦ COLECCIÓN DIGITAL',
+  desc: 'Recursos digitales orientados a contenido y presencia en redes sociales.',
+  products: []
+},
+'curriculums': {
+  title: 'PACK PROFESIONAL DE CURRÍCULUMS',
+  eyebrow: '✦ COLECCIÓN PROFESIONAL',
+  desc: 'Recursos profesionales para la creación y presentación de currículums.',
+  products: []
 }
-      ]
-    },
-    'mockups': {
-      title: 'PACK PROFESIONAL DE MOCKUPS',
-      eyebrow: '✦ COLECCIÓN VISUAL',
-      desc: 'Recursos visuales profesionales para presentar diseños y proyectos.',
-      products: [
-        {
-          id: 'mockup-ejemplo',
-          name: 'Mockup Profesional — Ejemplo',
-          description: 'Producto temporal utilizado para probar el funcionamiento del carrito.',
-          category: 'mockups',
-          icon: '🖼️'
-        }
-      ]
-    }
   };
 
 
@@ -195,7 +198,14 @@ async function cargarProductosBackend() {
 }
 
   // Categorías que abren catálogo
-  const categoriasConCatalogo = ['plantillas-premium', 'ebooks-plr', 'mockups'];
+  const categoriasConCatalogo = [
+  'plantillas-premium',
+  'biblioteca-premium',
+  'ebooks-plr',
+  'redes-sociales',
+  'curriculums',
+  'mockups'
+];
 
   // =============================================
   // 3. DOM REFERENCES
@@ -213,6 +223,10 @@ async function cargarProductosBackend() {
   const modalColeccionOverlay = document.getElementById('modalColeccionOverlay');
   const modalColeccionClose = document.getElementById('modalColeccionClose');
   const modalColeccionActionBtn = document.getElementById('modalColeccionActionBtn');
+  const modalFichaPlantillaOverlay = document.getElementById('modalFichaPlantillaOverlay');
+  const modalFichaPlantillaClose = document.getElementById('modalFichaPlantillaClose');
+  const modalFichaPlantillaCerrar = document.getElementById('modalFichaPlantillaCerrar');
+  const btnObtenerPlantilla = document.getElementById('btnObtenerPlantilla');
   const modalColeccionTitle = document.getElementById('modalColeccionTitle');
   const coleccionEyebrow = document.getElementById('coleccionEyebrow');
   const coleccionDesc = document.getElementById('coleccionDesc');
@@ -225,6 +239,40 @@ async function cargarProductosBackend() {
   const cartCountLabel = document.getElementById('cartCountLabel');
   const btnCheckout = document.getElementById('btnCheckout');
   const cartBadge = document.getElementById('cartBadge');
+  const barraCompraFlotante = document.getElementById('barraCompraFlotante');
+  const barraCompraCantidad = document.getElementById('barraCompraCantidad');
+  const barraCompraTotal = document.getElementById('barraCompraTotal');
+  const btnContinuarCompraFlotante = document.getElementById('btnContinuarCompraFlotante');
+function actualizarBarraCompraFlotante() {
+  if (!barraCompraFlotante || !barraCompraCantidad || !barraCompraTotal) {
+    return;
+  }
+
+  if (!currentUser || cart.length === 0) {
+    barraCompraFlotante.style.display = 'none';
+    return;
+  }
+
+  barraCompraFlotante.style.display = 'block';
+
+  barraCompraCantidad.textContent =
+    cart.length === 1
+      ? '1 plantilla seleccionada'
+      : `${cart.length} plantillas seleccionadas`;
+
+  const totalSeleccion = cart.reduce((total, producto) => {
+    const precio = currentUser.mercado === 'EXTRANJERO'
+      ? Number(producto.precioExtranjero || 0)
+      : Number(producto.precioCuba || 0);
+
+    return total + precio;
+  }, 0);
+
+  barraCompraTotal.textContent =
+    currentUser.mercado === 'EXTRANJERO'
+      ? `Total: ${totalSeleccion} USD/EUR`
+      : `Total: ${totalSeleccion} CUP`;
+}
 
   const modalRegistroRequeridoOverlay = document.getElementById('modalRegistroRequeridoOverlay');
   const modalRegistroRequeridoClose = document.getElementById('modalRegistroRequeridoClose');
@@ -633,15 +681,50 @@ novedades = (datosNotif.notificaciones || []).map(n => ({
   // =============================================
   // 11. CARRITO - FUNCIONES
   // =============================================
-  function actualizarBadgeCarrito() {
-    const count = cart.length;
-    if (count > 0) {
-      cartBadge.textContent = count;
+  async function actualizarBadgeCarrito() {
+
+  if (!cartBadge) return;
+
+  if (!currentUser || currentUser.role !== 'cliente') {
+    cartBadge.textContent = '0';
+    cartBadge.classList.remove('visible');
+    return;
+  }
+
+  try {
+    const respuesta = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerComprasCliente',
+        idCliente: currentUser.id
+      })
+    });
+
+    const datos = await respuesta.json();
+
+    if (!datos.ok) {
+      return;
+    }
+
+    const compras = datos.compras || [];
+
+    const cantidadPendientes = compras.filter(compra =>
+      String(compra.Estado_Pago || '').trim().toUpperCase() === 'APROBADO' &&
+      String(compra.Descargado || '').trim().toUpperCase() !== 'SI'
+    ).length;
+
+    if (cantidadPendientes > 0) {
+      cartBadge.textContent = cantidadPendientes;
       cartBadge.classList.add('visible');
     } else {
+      cartBadge.textContent = '0';
       cartBadge.classList.remove('visible');
     }
+
+  } catch (error) {
+    console.error('Error al actualizar contador de compras:', error);
   }
+}
 
   function estaEnCarrito(productId) {
     return cart.some(item => item.id === productId);
@@ -669,10 +752,14 @@ if (!currentUser) {
   }
 
   function vaciarCarrito() {
-    cart = [];
-    actualizarBadgeCarrito();
-    actualizarBotonesColeccion();
-  }
+  cart = [];
+
+  sessionStorage.removeItem('zonaTotalSeleccionCompra');
+
+  actualizarBadgeCarrito();
+  actualizarBotonesColeccion();
+  actualizarBarraCompraFlotante();
+}
 
   function actualizarBotonesColeccion() {
     document.querySelectorAll('.producto-card .btn-add-cart').forEach(btn => {
@@ -763,13 +850,87 @@ if (categoryId === 'plantillas-premium') {
       precioExtranjero: Number(producto.Precio_Extranjero) || 0,
       formato: producto.Formato,
       idArchivoDrive: producto.ID_Archivo_Drive,
-price: currentUser
+      idImagenPreview: producto.ID_Imagen_Preview,
+      price: currentUser
   ? (
       currentUser.mercado === 'EXTRANJERO'
         ? Number(producto.Precio_Extranjero) || 0
         : Number(producto.Precio_Cuba) || 0
     )
   : 0
+    }));
+
+  data = {
+    ...data,
+    products: productosReales
+  };
+}
+
+
+if (categoryId !== 'plantillas-premium') {
+
+  const categoriasBackend = {
+    'biblioteca-premium': [
+      'biblioteca premium'
+    ],
+    'ebooks-plr': [
+      'e-books plr',
+      'ebooks plr'
+    ],
+    'redes-sociales': [
+      'kit profesional redes sociales',
+      'redes sociales'
+    ],
+    'curriculums': [
+      'pack profesional de curriculums',
+      'curriculums'
+    ],
+    'mockups': [
+      'pack profesional de mockups',
+      'mockups'
+    ]
+  };
+
+  const normalizarCategoria = valor =>
+    String(valor || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+
+  const nombresPermitidos =
+    categoriasBackend[categoryId] || [];
+
+  const productosReales = productosBackend
+    .filter(producto => {
+      const categoriaProducto =
+        normalizarCategoria(producto.Categoria);
+
+      return (
+        nombresPermitidos.includes(categoriaProducto) &&
+        String(producto.Estado || '')
+          .trim()
+          .toUpperCase() === 'ACTIVO'
+      );
+    })
+    .map(producto => ({
+      id: producto.ID_Producto,
+      name: producto.Nombre,
+      description: producto.Descripcion,
+      category: categoryId,
+      icon: '📦',
+      precioCuba: Number(producto.Precio_Cuba) || 0,
+      precioExtranjero: Number(producto.Precio_Extranjero) || 0,
+      formato: producto.Formato,
+      idArchivoDrive: producto.ID_Archivo_Drive,
+      idImagenPreview: producto.ID_Imagen_Preview,
+      price: currentUser
+        ? (
+            currentUser.mercado === 'EXTRANJERO'
+              ? Number(producto.Precio_Extranjero) || 0
+              : Number(producto.Precio_Cuba) || 0
+          )
+        : 0
     }));
 
   data = {
@@ -799,32 +960,53 @@ data.products.forEach(product => {
   let btnDisabled = '';
 
   if (esPropietaria) {
-    btnClass = 'btn-primary btn-acceso-propietaria';
-    btnText = 'ABRIR PRODUCTO';
-  } else {
-    btnClass = inCart ? 'btn-in-cart' : 'btn-primary btn-add-cart';
-    btnText = inCart ? '✓ EN EL CARRITO' : 'AGREGAR AL CARRITO';
-    btnDisabled = inCart ? 'disabled' : '';
-  }
+  btnClass = 'btn-primary btn-acceso-propietaria';
+  btnText = 'ABRIR PRODUCTO';
+} else if (categoryId === 'plantillas-premium') {
+  btnClass = 'btn-primary btn-ver-plantilla';
+  btnText = 'VER PLANTILLA';
+  btnDisabled = '';
+} else {
+  btnClass = 'btn-primary btn-ver-producto';
+  btnText = 'VER PRODUCTO';
+  btnDisabled = inCart ? 'disabled' : '';
+}
     html += `
       <div class="producto-card">
         <div class="producto-visual">
-          <span class="icon-placeholder">${product.icon || '📄'}</span>
-        </div>
+  ${
+    product.idImagenPreview
+      ? `
+        <img
+          src="https://drive.google.com/thumbnail?id=${encodeURIComponent(product.idImagenPreview)}&sz=w800"
+          alt="${product.name}"
+          loading="lazy"
+          decoding="async"
+          class="producto-preview-img"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        >
+
+        <span
+          class="icon-placeholder"
+          style="display:none;"
+        >
+          ${product.icon || '📄'}
+        </span>
+      `
+      : `
+        <span class="icon-placeholder">
+          ${product.icon || '📄'}
+        </span>
+      `
+  }
+</div>
 
         <div class="producto-info">
-          <span class="producto-categoria">${data.title}</span>
-          <h4 class="producto-nombre">${product.name}</h4>
-<p class="producto-desc">${product.description}</p>
+  <h4 class="producto-nombre">${product.name}</h4>
 
-${categoryId === 'plantillas-premium' ? `
-  <div class="producto-precio">
-    ${currentUser
-      ? `${precioProducto} ${currentUser.mercado === 'EXTRANJERO' ? 'USD/EUR' : 'CUP'}`
-      : `${product.precioCuba} CUP · ${product.precioExtranjero} USD/EUR`
-    }
-  </div>
-` : ''}
+  
+
+
 
 <button
             class="btn ${btnClass}"
@@ -843,43 +1025,146 @@ ${categoryId === 'plantillas-premium' ? `
     `${data.products.length} productos disponibles`;
 
   if (esPropietaria) {
-    productosColeccion
-      .querySelectorAll('.btn-acceso-propietaria')
-      .forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
+  productosColeccion
+    .querySelectorAll('.btn-acceso-propietaria')
+    .forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
 
-          const productId = this.getAttribute('data-product-id');
-          const productData = data.products.find(
-            p => p.id === productId
+        const productId = this.getAttribute('data-product-id');
+        const productData = data.products.find(
+          p => p.id === productId
+        );
+
+        if (productData) {
+          mostrarToast(
+            `Acceso de propietaria: ${productData.name}`
           );
-
-          if (productData) {
-            mostrarToast(
-              `Acceso de propietaria: ${productData.name}`
-            );
-          }
-        });
+        }
       });
+    });
 
-  } else {
-    productosColeccion
-      .querySelectorAll('.btn-add-cart')
-      .forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
+} else if (categoryId === 'plantillas-premium') {
 
-          const productId = this.getAttribute('data-product-id');
-          const productData = data.products.find(
-            p => p.id === productId
-          );
+  productosColeccion
+    .querySelectorAll('.btn-ver-plantilla')
+    .forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
 
- if (productData) {
-  agregarAlCarrito(productData);
+        const productId = this.getAttribute('data-product-id');
+
+        const productData = data.products.find(
+          p => p.id === productId
+        );
+
+        if (!productData) return;
+        plantillaSeleccionada = productData;
+
+        const precioTexto = currentUser
+          ? (
+              currentUser.mercado === 'EXTRANJERO'
+                ? `${productData.precioExtranjero} USD/EUR`
+                : `${productData.precioCuba} CUP`
+            )
+          : `${productData.precioCuba} CUP · ${productData.precioExtranjero} USD/EUR`;
+
+        const fichaOverlay = document.getElementById('modalFichaPlantillaOverlay');
+const fichaNombre = document.getElementById('fichaPlantillaNombre');
+const fichaDescripcion = document.getElementById('fichaPlantillaDescripcion');
+const fichaPrecioCuba = document.getElementById('fichaPrecioCuba');
+const fichaPrecioExtranjero = document.getElementById('fichaPrecioExtranjero');
+const fichaFormato = document.getElementById('fichaPlantillaFormato');
+const fichaIcono = fichaOverlay.querySelector('.ficha-plantilla-icono');
+
+fichaNombre.textContent = productData.name;
+fichaDescripcion.textContent = productData.description;
+fichaPrecioCuba.textContent = `${productData.precioCuba} CUP`;
+fichaPrecioExtranjero.textContent = `${productData.precioExtranjero} USD / EUR`;
+fichaFormato.textContent = productData.formato || 'Digital';
+if (productData.idImagenPreview) {
+  fichaIcono.innerHTML = `
+    <img
+      src="https://drive.google.com/thumbnail?id=${encodeURIComponent(productData.idImagenPreview)}&sz=w1000"
+      alt="${productData.name}"
+      class="ficha-plantilla-preview-img"
+    >
+  `;
+} else {
+  fichaIcono.innerHTML = '📄';
 }
-        });
+
+abrirModal(fichaOverlay);
       });
-  }
+    });
+
+} else {
+
+  productosColeccion
+    .querySelectorAll('.btn-ver-producto')
+    .forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        const productId = this.getAttribute('data-product-id');
+
+        const productData = data.products.find(
+          p => p.id === productId
+        );
+
+        if (!productData) return;
+
+        plantillaSeleccionada = productData;
+
+        const fichaOverlay =
+          document.getElementById('modalFichaPlantillaOverlay');
+
+        const fichaNombre =
+          document.getElementById('fichaPlantillaNombre');
+
+        const fichaDescripcion =
+          document.getElementById('fichaPlantillaDescripcion');
+
+        const fichaPrecioCuba =
+          document.getElementById('fichaPrecioCuba');
+
+        const fichaPrecioExtranjero =
+          document.getElementById('fichaPrecioExtranjero');
+
+        const fichaFormato =
+          document.getElementById('fichaPlantillaFormato');
+
+        const fichaIcono =
+          fichaOverlay.querySelector('.ficha-plantilla-icono');
+const fichaEyebrow =
+  fichaOverlay.querySelector('.ficha-plantilla-eyebrow');
+
+if (fichaEyebrow) {
+  fichaEyebrow.textContent = data.eyebrow;
+}
+
+        fichaNombre.textContent = productData.name;
+        fichaDescripcion.textContent = productData.description;
+        fichaPrecioCuba.textContent = `${productData.precioCuba} CUP`;
+        fichaPrecioExtranjero.textContent = `${productData.precioExtranjero} USD / EUR`;
+        fichaFormato.textContent = productData.formato || 'Digital';
+
+        if (productData.idImagenPreview) {
+          fichaIcono.innerHTML = `
+            <img
+              src="https://drive.google.com/thumbnail?id=${encodeURIComponent(productData.idImagenPreview)}&sz=w1000"
+              alt="${productData.name}"
+              class="ficha-plantilla-preview-img"
+            >
+          `;
+        } else {
+          fichaIcono.innerHTML = productData.icon || '📦';
+        }
+
+        abrirModal(fichaOverlay);
+      });
+    });
+}
 
   lastFocusedElement = document.activeElement;
   abrirModal(modalColeccionOverlay);
@@ -892,6 +1177,108 @@ ${categoryId === 'plantillas-premium' ? `
 
   if (modalColeccionClose) { modalColeccionClose.addEventListener('click', cerrarColeccion); }
   if (modalColeccionActionBtn) { modalColeccionActionBtn.addEventListener('click', cerrarColeccion); }
+  if (modalFichaPlantillaClose) {
+  modalFichaPlantillaClose.addEventListener('click', function() {
+    cerrarModal(modalFichaPlantillaOverlay);
+  });
+}
+
+if (modalFichaPlantillaCerrar) {
+  modalFichaPlantillaCerrar.addEventListener('click', function() {
+    cerrarModal(modalFichaPlantillaOverlay);
+  });
+}
+
+if (btnObtenerPlantilla) {
+  btnObtenerPlantilla.addEventListener('click', function(e) {
+    e.stopPropagation();
+
+    if (!plantillaSeleccionada) return;
+
+    if (!currentUser) {
+  pendingAction = 'compra';
+
+  const yaSeleccionada = cart.some(item =>
+    String(item.id || '') === String(plantillaSeleccionada.id || '')
+  );
+
+  if (!yaSeleccionada) {
+    cart.push({ ...plantillaSeleccionada });
+
+    sessionStorage.setItem(
+      'zonaTotalSeleccionCompra',
+      JSON.stringify(cart)
+    );
+  }
+
+  cerrarModal(modalFichaPlantillaOverlay);
+
+  setTimeout(() => {
+    abrirModal(modalRegistroRequeridoOverlay);
+  }, 200);
+
+  return;
+}
+
+    const yaSeleccionada = cart.some(item =>
+      String(item.id || '') === String(plantillaSeleccionada.id || '')
+    );
+
+    if (!yaSeleccionada) {
+  cart.push({ ...plantillaSeleccionada });
+
+  sessionStorage.setItem(
+    'zonaTotalSeleccionCompra',
+    JSON.stringify(cart)
+  );
+}
+
+    cerrarModal(modalFichaPlantillaOverlay);
+
+    mostrarToast(
+  yaSeleccionada
+    ? 'Esta plantilla ya está seleccionada.'
+    : 'Plantilla agregada a tu selección.'
+);
+
+if (cart.length > 0) {
+  barraCompraFlotante.style.display = 'block';
+
+  barraCompraCantidad.textContent =
+    cart.length === 1
+      ? '1 plantilla seleccionada'
+      : `${cart.length} plantillas seleccionadas`;
+
+  const totalSeleccion = cart.reduce((total, producto) => {
+    const precio = currentUser.mercado === 'EXTRANJERO'
+      ? Number(producto.precioExtranjero || 0)
+      : Number(producto.precioCuba || 0);
+
+    return total + precio;
+  }, 0);
+
+  barraCompraTotal.textContent =
+    currentUser.mercado === 'EXTRANJERO'
+      ? `Total: ${totalSeleccion} USD/EUR`
+      : `Total: ${totalSeleccion} CUP`;
+}
+  });
+}
+
+
+if (btnContinuarCompraFlotante) {
+  btnContinuarCompraFlotante.addEventListener('click', function(e) {
+    e.stopPropagation();
+
+    if (cart.length === 0) {
+      mostrarToast('No tienes plantillas seleccionadas.');
+      return;
+    }
+
+    mostrarConfirmarCompra();
+  });
+}
+
 
   // =============================================
   // 13. BOTONES DE CATEGORÍAS
@@ -919,13 +1306,323 @@ ${categoryId === 'plantillas-premium' ? `
   // 14. CARRITO - ABRIR
   // =============================================
   if (btnCart) {
-    btnCart.addEventListener('click', function(e) {
-      e.stopPropagation();
-      lastFocusedElement = document.activeElement;
-      renderizarCarrito();
+  btnCart.addEventListener('click', async function(e) {
+    e.stopPropagation();
+
+    lastFocusedElement = document.activeElement;
+
+    if (!currentUser) {
+      cartItems.innerHTML = `
+        <p style="text-align:center; color: var(--text-secondary);">
+          Inicia sesión para ver tus compras.
+        </p>
+      `;
+
       abrirModal(modalCartOverlay);
-    });
+      return;
+    }
+
+    cartItems.innerHTML = `
+  <div style="
+    text-align:center;
+    padding:28px 10px;
+    color:var(--text-secondary);
+  ">
+    <div style="
+      font-size:28px;
+      margin-bottom:10px;
+    ">
+      ⏳
+    </div>
+
+    <div style="
+      font-weight:600;
+      color:#475569;
+    ">
+      Cargando tus compras...
+    </div>
+  </div>
+`;
+
+abrirModal(modalCartOverlay);
+
+    try {
+      const respuesta = await fetch(BACKEND_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'obtenerComprasCliente',
+          idCliente: currentUser.id
+        })
+      });
+
+      const datos = await respuesta.json();
+
+      if (!datos.ok) {
+        cartItems.innerHTML = `
+          <p style="text-align:center; color: var(--text-secondary);">
+            No se pudieron cargar tus compras.
+          </p>
+        `;
+        return;
+      }
+
+      const compras = datos.compras || [];
+
+const comprasAprobadasPendientes = compras.filter(compra =>
+  String(compra.Estado_Pago || '').trim().toUpperCase() === 'APROBADO' &&
+  String(compra.Descargado || '').trim().toUpperCase() !== 'SI'
+);
+
+if (cartBadge) {
+  const cantidadPendientes = comprasAprobadasPendientes.length;
+
+  if (cantidadPendientes > 0) {
+    cartBadge.textContent = cantidadPendientes;
+    cartBadge.classList.add('visible');
+  } else {
+    cartBadge.textContent = '0';
+    cartBadge.classList.remove('visible');
   }
+}
+
+      if (compras.length === 0) {
+        cartItems.innerHTML = `
+          <p style="text-align:center; color: var(--text-secondary);">
+            Aún no tienes compras registradas.
+          </p>
+        `;
+        return;
+      }
+
+      cartItems.innerHTML = compras.map(compra => {
+
+  const estado = String(compra.Estado_Pago || 'PENDIENTE').toUpperCase();
+
+  let colorEstado = '#d97706';
+  let fondoEstado = '#fef3c7';
+  let iconoEstado = '◷';
+
+  if (estado === 'APROBADO') {
+    colorEstado = '#15803d';
+    fondoEstado = '#dcfce7';
+    iconoEstado = '✓';
+  } else if (estado === 'RECHAZADO') {
+    colorEstado = '#b91c1c';
+    fondoEstado = '#fee2e2';
+    iconoEstado = '✕';
+  }
+
+  return `
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:16px;
+      padding:18px 4px;
+      border-bottom:1px solid #eef2f7;
+    ">
+
+      <div style="
+        width:52px;
+        height:52px;
+        border-radius:14px;
+        background:#eef6ff;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:24px;
+        flex-shrink:0;
+      ">
+        📄
+      </div>
+
+      <div style="flex:1; min-width:0;">
+
+        <div style="
+          font-weight:700;
+          font-size:15px;
+          color:#172033;
+          margin-bottom:7px;
+        ">
+          ${compra.Productos || 'Producto'}
+        </div>
+
+        <span style="
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          padding:5px 10px;
+          border-radius:999px;
+          background:${fondoEstado};
+          color:${colorEstado};
+          font-size:12px;
+          font-weight:700;
+        ">
+          ${iconoEstado} ${estado}
+        </span>
+
+      </div>
+
+      <div style="
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+">
+  <div style="
+    color:#94a3b8;
+    font-size:12px;
+    white-space:nowrap;
+  ">
+    ${compra.Fecha_Compra || ''}
+  </div>
+
+  ${estado === 'APROBADO'
+  ? (String(compra.Descargado || '').trim().toUpperCase() === 'SI'
+  ? `
+    <button
+      class="btn btn-descargar-compra"
+      type="button"
+      disabled
+    >
+      ✓ DESCARGADO
+    </button>
+
+    <button
+      class="btn btn-primary btn-volver-comprar"
+      data-producto="${compra.Productos || ''}"
+      type="button"
+    >
+      VOLVER A COMPRAR
+    </button>
+  `
+        : `
+          <button
+            class="btn btn-primary btn-descargar-compra"
+            data-producto="${compra.Productos || ''}"
+            type="button"
+          >
+            DESCARGAR
+          </button>
+        `
+    )
+  : ''
+}
+</div>
+
+    </div>
+  `;
+}).join('');
+
+
+cartItems
+  .querySelectorAll('.btn-descargar-compra')
+  .forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+      e.stopPropagation();
+
+      if (!currentUser) return;
+
+      const nombreProducto = this.getAttribute('data-producto');
+
+      if (!nombreProducto) return;
+
+      this.disabled = true;
+      this.textContent = 'PREPARANDO...';
+
+      try {
+        const respuesta = await fetch(BACKEND_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            accion: 'obtenerDescargaCompra',
+            idCliente: currentUser.id,
+            producto: nombreProducto
+          })
+        });
+
+        const datos = await respuesta.json();
+
+        if (!datos.ok) {
+          mostrarToast(
+            datos.mensaje || 'No se pudo preparar la descarga.'
+          );
+          return;
+        }
+
+        const enlaceDescarga =
+          `https://drive.google.com/uc?export=download&id=${encodeURIComponent(datos.idArchivoDrive)}`;
+
+        window.open(
+          enlaceDescarga,
+          '_blank',
+          'noopener,noreferrer'
+        );
+
+this.disabled = true;
+this.textContent = '✓ DESCARGADO';
+this.classList.remove('btn-primary');
+
+      } catch (error) {
+        console.error('Error al descargar producto:', error);
+
+        mostrarToast(
+          'No se pudo conectar con el sistema.'
+        );
+
+       } finally {
+        if (this.textContent !== '✓ DESCARGADO') {
+          this.disabled = false;
+          this.textContent = 'DESCARGAR';
+        }
+      }
+    });
+  });
+
+cartItems.querySelectorAll('.btn-volver-comprar').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const nombreProducto = this.dataset.producto;
+
+    const producto = productosBackend.find(p =>
+      String(p.Nombre || '').trim() === String(nombreProducto || '').trim()
+    );
+
+    if (!producto) {
+      mostrarToast('No se encontró el producto.');
+      return;
+    }
+
+    const productoCompra = {
+      id: producto.ID_Producto,
+      name: producto.Nombre,
+      description: producto.Descripcion,
+      category: 'plantillas-premium',
+      icon: '📄',
+      precioCuba: Number(producto.Precio_Cuba) || 0,
+      precioExtranjero: Number(producto.Precio_Extranjero) || 0,
+      formato: producto.Formato,
+      idArchivoDrive: producto.ID_Archivo_Drive
+    };
+
+    cart = [productoCompra];
+
+    cerrarModal(modalCartOverlay);
+
+    setTimeout(() => {
+      mostrarConfirmarCompra();
+    }, 200);
+  });
+});
+
+    } catch (error) {
+      console.error('Error cargando compras del cliente:', error);
+
+      cartItems.innerHTML = `
+        <p style="text-align:center; color: var(--text-secondary);">
+          No se pudo conectar con el sistema.
+        </p>
+      `;
+    }
+  });
+}
 
   if (modalCartClose) { modalCartClose.addEventListener('click', function() { cerrarModal(modalCartOverlay); }); }
 
@@ -1336,15 +2033,55 @@ guardarSesion();
 
     let html = '';
     cart.forEach(item => {
-      html += `
-        <div class="confirmar-item">
-          <span class="confirmar-item-icon">${item.icon || '📄'}</span>
-          <span class="confirmar-item-name">${item.name}</span>
-        </div>
-      `;
-    });
+  html += `
+    <div class="confirmar-item">
+      <span class="confirmar-item-icon">${item.icon || '📄'}</span>
+
+      <span class="confirmar-item-name">
+        ${item.name}
+      </span>
+
+      <button
+        type="button"
+        class="btn-eliminar-seleccion"
+        data-product-id="${item.id}"
+      >
+        ELIMINAR
+      </button>
+    </div>
+  `;
+});
 
     confirmarProductos.innerHTML = html;
+confirmarProductos
+  .querySelectorAll('.btn-eliminar-seleccion')
+  .forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+
+      const productId = this.getAttribute('data-product-id');
+
+      cart = cart.filter(item =>
+        String(item.id || '') !== String(productId || '')
+      );
+
+      sessionStorage.setItem(
+        'zonaTotalSeleccionCompra',
+        JSON.stringify(cart)
+      );
+
+      actualizarBarraCompraFlotante();
+
+      if (cart.length === 0) {
+        cerrarModal(modalConfirmarCompraOverlay);
+        sessionStorage.removeItem('zonaTotalSeleccionCompra');
+        mostrarToast('Ya no tienes plantillas seleccionadas.');
+        return;
+      }
+
+      mostrarConfirmarCompra();
+    });
+  });
     confirmarCount.textContent = `${cart.length} producto${cart.length > 1 ? 's' : ''} seleccionado${cart.length > 1 ? 's' : ''}`;
     lastFocusedElement = document.activeElement;
     abrirModal(modalConfirmarCompraOverlay);
@@ -1368,35 +2105,59 @@ guardarSesion();
   .join(', ');
 
 const totalCompra = cart.reduce((total, producto) => {
-  return total + (Number(producto.price) || 0);
+  const precio = currentUser.mercado === 'EXTRANJERO'
+    ? Number(producto.precioExtranjero) || 0
+    : Number(producto.precioCuba) || 0;
+
+  return total + precio;
 }, 0);
 
-    const respuestaCompra = await fetch(BACKEND_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        accion: 'registrarCompra',
-        idCliente: currentUser.id,
-        idVendedor: currentUser.idVendedor,
-        cliente: currentUser.username,
-        vendedor: currentUser.vendedor,
-        productos: nombresProductos,
-        total: totalCompra
-      })
-    });
+const idsCompras = [];
 
-    const datosCompra = await respuestaCompra.json();
+const idPedido =
+  'PED-' +
+  Date.now().toString(36).toUpperCase();
 
-    if (!datosCompra.ok) {
-  openModal(
-    'No se pudo registrar la compra',
-    datosCompra.mensaje || 'Inténtalo nuevamente.',
-    'Entendido'
-  );
-  return;
+for (const producto of cart) {
+
+  const precioProducto = currentUser.mercado === 'EXTRANJERO'
+    ? Number(producto.precioExtranjero) || 0
+    : Number(producto.precioCuba) || 0;
+
+  const respuestaCompra = await fetch(BACKEND_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      accion: 'registrarCompra',
+      idCliente: currentUser.id,
+      idVendedor: currentUser.idVendedor,
+      cliente: currentUser.username,
+      telefono: currentUser.phone,
+      correo: currentUser.email,
+      mercado: currentUser.mercado,
+      vendedor: currentUser.vendedor,
+      productos: producto.name,
+total: precioProducto,
+idPedido: idPedido
+    })
+  });
+
+  const datosCompra = await respuestaCompra.json();
+
+  if (!datosCompra.ok) {
+    openModal(
+      'No se pudo registrar la compra',
+      datosCompra.mensaje || 'Inténtalo nuevamente.',
+      'Entendido'
+    );
+    return;
+  }
+
+  idsCompras.push(datosCompra.idCompra);
 }
 
 vaciarCarrito();
-const idCompraActual = datosCompra.idCompra;
+
+const idCompraActual = idsCompras.join(', ');
 
 if (pagoIdCompra) {
   pagoIdCompra.textContent = `Compra: ${idCompraActual}`;
@@ -1430,7 +2191,9 @@ if (modalPagoActionBtn) {
   `Productos: ${nombresProductos}`;
 
 const enlaceWhatsApp =
-  `https://wa.me/${telefonoWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+`https://wa.me/${telefonoWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+
+cerrarModal(modalPagoOverlay);
 
 window.open(enlaceWhatsApp, '_blank', 'noopener,noreferrer');
   };
@@ -1942,6 +2705,7 @@ function actualizarHeader() {
 actualizarBadge();
 actualizarHeader();
 actualizarBadgeCarrito();
+actualizarBarraCompraFlotante();
 cargarVendedorDelEnlace();
 cargarProductosBackend().then(() => {
   if (currentCategory) {
