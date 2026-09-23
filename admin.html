@@ -167,6 +167,141 @@
             overflow-x: auto;
             margin-top: 1rem;
         }
+
+/* ===== TABLA REVENDEDORES FIJA ===== */
+
+#revendedoresTableContainer {
+    max-height: 62vh;
+    overflow: auto;
+    position: relative;
+    border-top: 1px solid #e2e8f0;
+}
+
+#revendedoresTableContainer table {
+    min-width: 1900px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Encabezado fijo al bajar dentro de la tabla */
+#revendedoresTableContainer thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #f8fafc;
+}
+
+/* ID fijo a la izquierda */
+#revendedoresTableContainer th:nth-child(1),
+#revendedoresTableContainer td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    background: white;
+    min-width: 95px;
+}
+
+/* Nombre fijo junto al ID */
+#revendedoresTableContainer th:nth-child(2),
+#revendedoresTableContainer td:nth-child(2) {
+    position: sticky;
+    left: 95px;
+    z-index: 15;
+    background: white;
+    min-width: 145px;
+}
+
+/* Encabezados de las columnas fijas */
+#revendedoresTableContainer thead th:nth-child(1),
+#revendedoresTableContainer thead th:nth-child(2) {
+    z-index: 30;
+    background: #f8fafc;
+}
+
+/* Acciones siempre visibles a la derecha */
+#revendedoresTableContainer th:last-child,
+#revendedoresTableContainer td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 15;
+    background: white;
+    min-width: 250px;
+    box-shadow: -8px 0 14px rgba(15, 23, 42, 0.06);
+}
+
+#revendedoresTableContainer thead th:last-child {
+    z-index: 30;
+    background: #f8fafc;
+}
+
+/* Evitar que los botones ocupen varias líneas innecesarias */
+#revendedoresTableContainer td:last-child .actions {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+
+/* ===== TABLA REVENTAS DE LICENCIAS FIJA ===== */
+
+#reventasTableContainer {
+    max-height: 62vh;
+    overflow: auto;
+    position: relative;
+    border-top: 1px solid #e2e8f0;
+}
+
+#reventasTableContainer table {
+    min-width: 1500px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Encabezado fijo */
+#reventasTableContainer thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #f8fafc;
+}
+
+/* ID Reventa fijo a la izquierda */
+#reventasTableContainer th:nth-child(1),
+#reventasTableContainer td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    background: white;
+    min-width: 100px;
+}
+
+/* ID Vendedor fijo */
+#reventasTableContainer th:nth-child(2),
+#reventasTableContainer td:nth-child(2) {
+    position: sticky;
+    left: 100px;
+    z-index: 15;
+    background: white;
+    min-width: 130px;
+}
+
+/* Vendedor fijo junto a los IDs */
+#reventasTableContainer th:nth-child(3),
+#reventasTableContainer td:nth-child(3) {
+    position: sticky;
+    left: 230px;
+    z-index: 15;
+    background: white;
+    min-width: 150px;
+}
+
+/* Encabezados de las columnas fijas */
+#reventasTableContainer thead th:nth-child(1),
+#reventasTableContainer thead th:nth-child(2),
+#reventasTableContainer thead th:nth-child(3) {
+    z-index: 30;
+    background: #f8fafc;
+}
+
         .table-toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -327,11 +462,17 @@
             border-bottom: 1px solid #f1f5f9;
         }
         .modal-box .detail-row .label {
-            width: 140px;
-            font-weight: 600;
-            color: #475569;
-            flex-shrink: 0;
-        }
+    width: 190px;
+    font-weight: 600;
+    color: #475569;
+    flex-shrink: 0;
+}
+
+.modal-box .detail-row .value {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
         .modal-box .detail-row .value {
             color: #0b1e33;
         }
@@ -682,9 +823,18 @@
                 <div id="productosTableContainer">
                     <table>
                         <thead><tr>
-                            <th>ID</th><th>Nombre</th><th>Categoría</th><th>Descripción</th>
-                            <th>Precio</th><th>Formato</th><th>Estado</th><th>Acciones</th>
-                        </tr></thead>
+  <th>ID</th>
+  <th>Nombre</th>
+  <th>Categoría</th>
+  <th>Descripción</th>
+  <th>Precio Cuba</th>
+  <th>Formato</th>
+  <th>Estado</th>
+  <th>ID Archivo Drive</th>
+  <th>Precio Extranjero</th>
+<th>ID Imagen Preview</th>
+<th>Acciones</th>
+</tr></thead>
                         <tbody id="productosBody"></tbody>
                     </table>
                 </div>
@@ -807,23 +957,53 @@ navButtons.forEach(button => {
         if (section) {
             section.classList.add('active');
 
-            if (sectionName === 'dashboard') renderDashboard();
+if (sectionName === 'dashboard') renderDashboard();
 if (sectionName === 'compras') renderCompras();
 if (sectionName === 'clientes') renderClientes();
 if (sectionName === 'revendedores') renderRevendedores();
 if (sectionName === 'productos') renderProductos();
-if (sectionName === 'reventas') renderReventas();
-if (sectionName === 'configuracion') renderConfiguracion();
-if (sectionName === 'renovaciones') renderRenovaciones();
+if (sectionName === 'reventas') {
+    if (!state.reventasLoaded) {
+        cargarReventas().then(renderReventas);
+    } else {
+        renderReventas();
+    }
+}
+
+if (sectionName === 'configuracion') {
+    if (!state.configuracionLoaded) {
+        cargarConfiguracion().then(renderConfiguracion);
+    } else {
+        renderConfiguracion();
+    }
+}
+
+if (sectionName === 'renovaciones') {
+    if (!state.renovacionesLoaded) {
+        cargarRenovaciones().then(renderRenovaciones);
+    } else {
+        renderRenovaciones();
+    }
+}
         }
     });
 });
 
 
-btnNotificacionesAdmin.addEventListener('click', () => {
+btnNotificacionesAdmin.addEventListener('click', async () => {
     modalBox.classList.add('modal-notificaciones');
-    renderNotificaciones();
     modalOverlay.classList.add('open');
+
+    if (!state.notificacionesLoaded) {
+        modalContent.innerHTML = `
+            <h2>🔔 Notificaciones</h2>
+            <div class="empty-state">Cargando notificaciones...</div>
+        `;
+
+        await cargarNotificaciones();
+    }
+
+    renderNotificaciones();
 });
 
         // ----- CERRAR MODAL -----
@@ -893,15 +1073,12 @@ function confirmarAccion(titulo, mensaje, textoConfirmar = 'Confirmar', tipo = '
 
         // ----- CARGAR TODOS LOS DATOS (con acciones backend reales) -----
         async function cargarTodosLosDatos() {
-           await Promise.all([
+        actualizarContadorNotificacionesRapido();
+          await Promise.all([
     cargarCompras(),
     cargarClientes(),
     cargarRevendedores(),
-    cargarProductos(),
-    cargarReventas(),
-    cargarConfiguracion(),
-    cargarRenovaciones(),
-    cargarNotificaciones()
+    cargarProductos()
 ]);
             // renderizar sección activa
             const activeSection = document.querySelector('#navTabs .active');
@@ -1085,6 +1262,38 @@ function actualizarContadorNotificaciones() {
 }
 
 
+async function actualizarContadorNotificacionesRapido() {
+    try {
+        const result = await callBackend('obtenerNotificaciones');
+
+        if (!result.ok) return;
+
+        const noVistas = (result.notificaciones || []).filter(n =>
+            String(n.Vista || '').trim().toUpperCase() !== 'SI'
+        ).length;
+
+        const contador = document.getElementById('contadorNotificaciones');
+
+        if (!contador) return;
+
+        if (noVistas > 0) {
+            contador.textContent = noVistas > 99 ? '99+' : noVistas;
+            contador.style.display = 'flex';
+        } else {
+            contador.textContent = '0';
+            contador.style.display = 'none';
+        }
+
+    } catch (error) {
+        console.error(
+            'Error al actualizar contador de notificaciones:',
+            error
+        );
+    }
+}
+
+
+
 // ---------- CARGAR NOTIFICACIONES ----------
 async function cargarNotificaciones() {
     try {
@@ -1186,7 +1395,7 @@ async function cargarNotificaciones() {
         function renderCompras() {
             const filter = document.querySelector('#comprasFilters .active-filter')?.dataset.filter || 'all';
             const search = document.getElementById('searchCompras').value.toLowerCase().trim();
-            let list = state.compras || [];
+            let list = [...(state.compras || [])].reverse();
             if (filter !== 'all') {
                 list = list.filter(c => c.Estado_Pago === filter.toUpperCase());
             }
@@ -1207,27 +1416,226 @@ async function cargarNotificaciones() {
                 tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No hay compras registradas</td></tr>`;
                 return;
             }
-            tbody.innerHTML = list.map(c => {
-                const estado = c.Estado_Pago || 'PENDIENTE';
-                const badgeClass = estado.toLowerCase();
-                const acciones = estado === 'PENDIENTE' ? `
-                    <button class="btn btn-success btn-sm" onclick="aprobarCompra('${c.ID_Compra}', this)">Aprobar</button>
-                    <button class="btn btn-danger btn-sm" onclick="rechazarCompra('${c.ID_Compra}', this)">Rechazar</button>
-                ` : `<span class="badge ${badgeClass}">${estado}</span>`;
-                return `<tr>
-                    <td><strong>${c.ID_Compra || '—'}</strong></td>
-                    <td>${c.ID_Cliente || '—'}</td>
-                    <td>${c.ID_Vendedor || '—'}</td>
-                    <td>${c.Cliente || '—'}</td>
-                    <td>${c.Vendedor || '—'}</td>
-                    <td>${c.Productos || '—'}</td>
-                    <td>${c.Total || '—'}</td>
-                    <td><span class="badge ${badgeClass}">${estado}</span></td>
-                    <td>${c.Fecha_Compra || '—'}</td>
-                    <td><div class="actions">${acciones}</div></td>
-                </tr>`;
-            }).join('');
+            const grupos = {};
+
+list.forEach(c => {
+  const claveGrupo =
+    String(c.ID_Pedido || '').trim() ||
+    String(c.ID_Compra || '').trim();
+
+  if (!grupos[claveGrupo]) {
+    grupos[claveGrupo] = [];
+  }
+
+  grupos[claveGrupo].push(c);
+});
+
+tbody.innerHTML = Object.entries(grupos).map(([idPedido, grupo]) => {
+
+  const primera = grupo[0];
+
+  const totalPedido = grupo.reduce((total, c) => {
+    const importe = Number(
+      String(c.Total || '0')
+        .replace(/\s/g, '')
+        .replace(',', '.')
+    );
+
+    return total + (Number.isFinite(importe) ? importe : 0);
+  }, 0);
+
+  const productosHtml = grupo.map(c => `
+    <div style="
+      padding:6px 0;
+      border-bottom:1px solid #e5e7eb;
+    ">
+      <strong>${c.Productos || '—'}</strong>
+
+      <div style="
+        font-size:12px;
+        color:#64748b;
+        margin-top:2px;
+      ">
+        ${c.ID_Compra || '—'} · ${c.Total || '0'}
+      </div>
+    </div>
+  `).join('');
+
+  const todosPendientes = grupo.every(c =>
+    String(c.Estado_Pago || '').trim().toUpperCase() === 'PENDIENTE'
+  );
+
+  const todosAprobados = grupo.every(c =>
+    String(c.Estado_Pago || '').trim().toUpperCase() === 'APROBADO'
+  );
+
+  const todosRechazados = grupo.every(c =>
+    String(c.Estado_Pago || '').trim().toUpperCase() === 'RECHAZADO'
+  );
+
+  let estadoGrupo = 'MIXTO';
+
+  if (todosPendientes) {
+    estadoGrupo = 'PENDIENTE';
+  } else if (todosAprobados) {
+    estadoGrupo = 'APROBADO';
+  } else if (todosRechazados) {
+    estadoGrupo = 'RECHAZADO';
+  }
+
+  const badgeClass = estadoGrupo.toLowerCase();
+
+  const idsPendientes = grupo
+  .filter(c =>
+    String(c.Estado_Pago || '').trim().toUpperCase() === 'PENDIENTE'
+  )
+  .map(c => c.ID_Compra);
+
+let acciones = '—';
+
+if (idsPendientes.length > 0) {
+  const idsJson = JSON.stringify(idsPendientes);
+
+  acciones = `
+    <div style="
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    ">
+      <button
+        class="btn btn-success btn-sm"
+        onclick='aprobarPedidoCompleto(${idsJson}, this)'>
+        Aprobar todo
+      </button>
+
+      <button
+        class="btn btn-danger btn-sm"
+        onclick='rechazarPedidoCompleto(${idsJson}, this)'>
+        Rechazar todo
+      </button>
+    </div>
+  `;
+}
+
+  return `
+    <tr>
+      <td><strong>${idPedido}</strong></td>
+      <td>${primera.ID_Cliente || '—'}</td>
+      <td>${primera.ID_Vendedor || '—'}</td>
+      <td>${primera.Cliente || '—'}</td>
+      <td>${primera.Vendedor || '—'}</td>
+      <td>${productosHtml}</td>
+      <td><strong>${totalPedido}</strong></td>
+      <td>
+        <span class="badge ${badgeClass}">
+          ${estadoGrupo}
+        </span>
+      </td>
+      <td>${primera.Fecha_Compra || '—'}</td>
+      <td>
+        <div class="actions">
+          ${acciones || '—'}
+        </div>
+      </td>
+    </tr>
+  `;
+}).join('');
         }
+
+
+window.aprobarPedidoCompleto = async function(idsCompras, btn) {
+  if (!Array.isArray(idsCompras) || idsCompras.length === 0) return;
+
+  const confirmado = await confirmarAccion(
+    'Aprobar pedido completo',
+    `¿Seguro que deseas aprobar las ${idsCompras.length} compras de este pedido?`,
+    'Sí, aprobar todo',
+    'success'
+  );
+
+  if (!confirmado) return;
+
+  if (btn) btn.disabled = true;
+
+  try {
+    for (const idCompra of idsCompras) {
+      const result = await callBackend('aprobarCompra', { idCompra });
+
+      if (!result.ok) {
+        showToast(
+          'Error: ' +
+          (result.mensaje || `No se pudo aprobar ${idCompra}`)
+        );
+        return;
+      }
+
+      const compra = state.compras.find(
+        c => c.ID_Compra === idCompra
+      );
+
+      if (compra) {
+        compra.Estado_Pago = 'APROBADO';
+      }
+    }
+
+    renderCompras();
+    showToast('Pedido completo aprobado correctamente');
+
+  } catch (e) {
+    showToast('Error de conexión: ' + e.message);
+
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};
+
+
+window.rechazarPedidoCompleto = async function(idsCompras, btn) {
+  if (!Array.isArray(idsCompras) || idsCompras.length === 0) return;
+
+  const confirmado = await confirmarAccion(
+    'Rechazar pedido completo',
+    `¿Seguro que deseas rechazar las ${idsCompras.length} compras de este pedido?`,
+    'Sí, rechazar todo',
+    'danger'
+  );
+
+  if (!confirmado) return;
+
+  if (btn) btn.disabled = true;
+
+  try {
+    for (const idCompra of idsCompras) {
+      const result = await callBackend('rechazarCompra', { idCompra });
+
+      if (!result.ok) {
+        showToast(
+          'Error: ' +
+          (result.mensaje || `No se pudo rechazar ${idCompra}`)
+        );
+        return;
+      }
+
+      const compra = state.compras.find(
+        c => c.ID_Compra === idCompra
+      );
+
+      if (compra) {
+        compra.Estado_Pago = 'RECHAZADO';
+      }
+    }
+
+    renderCompras();
+    showToast('Pedido completo rechazado');
+
+  } catch (e) {
+    showToast('Error de conexión: ' + e.message);
+
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};
+
 
         // ----- APROBAR COMPRA (acción existente) -----
         window.aprobarCompra = async function(idCompra, btn) {
@@ -1292,7 +1700,7 @@ if (!confirmado) return;
         function renderClientes() {
             const filter = document.querySelector('#clientesFilters .active-filter')?.dataset.filter || 'all';
             const search = document.getElementById('searchClientes').value.toLowerCase().trim();
-            let list = state.clientes || [];
+            let list = [...(state.clientes || [])].reverse();
             if (filter !== 'all') {
                 list = list.filter(c => c.Estado === filter.toUpperCase());
             }
@@ -1520,7 +1928,7 @@ document.getElementById('btnAgregarRevendedor').addEventListener('click', () => 
         function renderRevendedores() {
             const filter = document.querySelector('#revendedoresFilters .active-filter')?.dataset.filter || 'all';
             const search = document.getElementById('searchRevendedores').value.toLowerCase().trim();
-            let list = state.revendedores || [];
+            let list = [...(state.revendedores || [])].reverse();
             if (filter !== 'all') {
                 list = list.filter(r => r.Estado === filter.toUpperCase());
             }
@@ -1888,7 +2296,7 @@ function renderReventas() {
         .toLowerCase()
         .trim();
 
-    let list = state.reventas || [];
+    let list = [...(state.reventas || [])].reverse();
 
     if (search) {
         list = list.filter(r =>
@@ -2168,7 +2576,13 @@ function renderNotificaciones() {
         return;
     }
 
-    const list = state.notificaciones || [];
+    const list = [...(state.notificaciones || [])].sort((a, b) =>
+  String(b.ID_Notificacion || '').localeCompare(
+    String(a.ID_Notificacion || ''),
+    undefined,
+    { numeric: true }
+  )
+);
 
     if (list.length === 0) {
         modalContent.innerHTML = `
@@ -2646,7 +3060,7 @@ window.resolverNotificacion = async function(idNotificacion, decision, btn) {
      // ----- RENDER PRODUCTOS -----
         function renderProductos() {
             const search = document.getElementById('searchProductos').value.toLowerCase().trim();
-            let list = state.productos || [];
+            let list = [...(state.productos || [])].reverse();
             if (search) {
                 list = list.filter(p =>
                     (p.Nombre || '').toLowerCase().includes(search) ||
@@ -2654,23 +3068,56 @@ window.resolverNotificacion = async function(idNotificacion, decision, btn) {
                 );
             }
             const tbody = document.getElementById('productosBody');
-            if (!state.productosLoaded) {
-                tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Cargando productos...</td></tr>`;
-                return;
-            }
-            if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay productos registrados.</td></tr>`;
-                return;
-            }
+           if (!state.productosLoaded) {
+    tbody.innerHTML = `<tr><td colspan="11" class="empty-state">Cargando productos...</td></tr>`;
+    return;
+}
+
+if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="11" class="empty-state">No hay productos registrados.</td></tr>`;
+    return;
+}
             tbody.innerHTML = list.map(p => `
                 <tr>
                     <td><strong>${p.ID_Producto || '—'}</strong></td>
                     <td>${p.Nombre || '—'}</td>
                     <td>${p.Categoria || '—'}</td>
-                    <td>${p.Descripcion || '—'}</td>
-                    <td>${p.Precio || '—'}</td>
-                    <td>${p.Formato || '—'}</td>
-                    <td><span class="badge ${(p.Estado||'').toLowerCase()}">${p.Estado || '—'}</span></td>
+                    <td title="${p.Descripcion || ''}">
+  ${
+    (p.Descripcion || '').length > 70
+      ? (p.Descripcion || '').substring(0, 70) + '...'
+      : (p.Descripcion || '—')
+  }
+</td>
+
+<td>${p.Precio_Cuba ?? '—'}</td>
+
+<td>${p.Formato || '—'}</td>
+
+<td>
+  <span class="badge ${(p.Estado || '').toLowerCase()}">
+    ${p.Estado || '—'}
+  </span>
+</td>
+
+<td title="${p.ID_Archivo_Drive || ''}">
+  ${
+    (p.ID_Archivo_Drive || '').length > 12
+      ? (p.ID_Archivo_Drive || '').substring(0, 12) + '...'
+      : (p.ID_Archivo_Drive || '—')
+  }
+</td>
+
+<td>${p.Precio_Extranjero ?? '—'}</td>
+
+<td title="${p.ID_Imagen_Preview || ''}">
+  ${
+    (p.ID_Imagen_Preview || '').length > 12
+      ? (p.ID_Imagen_Preview || '').substring(0, 12) + '...'
+      : (p.ID_Imagen_Preview || '—')
+  }
+</td>
+
                     <td><div class="actions">
                         <button class="btn btn-sm" onclick="verProducto('${p.ID_Producto}')">Detalles</button>
                         <button class="btn btn-sm" onclick="editarProducto('${p.ID_Producto}')">Editar</button>
@@ -2705,8 +3152,51 @@ window.resolverNotificacion = async function(idNotificacion, decision, btn) {
                     <div class="form-group"><label>Nombre</label><input name="Nombre" value="${p.Nombre || ''}" required></div>
                     <div class="form-group"><label>Categoría</label><input name="Categoria" value="${p.Categoria || ''}"></div>
                     <div class="form-group"><label>Descripción</label><input name="Descripcion" value="${p.Descripcion || ''}"></div>
-                    <div class="form-group"><label>Precio</label><input name="Precio" value="${p.Precio || ''}"></div>
-                    <div class="form-group"><label>Formato</label><input name="Formato" value="${p.Formato || ''}"></div>
+                    <div class="form-group">
+  <label>Precio Cuba</label>
+  <input
+    name="Precio_Cuba"
+    type="number"
+    step="any"
+    value="${p.Precio_Cuba ?? ''}"
+  >
+</div>
+
+<div class="form-group">
+  <label>Precio Extranjero</label>
+  <input
+    name="Precio_Extranjero"
+    type="number"
+    step="any"
+    value="${p.Precio_Extranjero ?? ''}"
+  >
+</div>
+
+<div class="form-group">
+  <label>Formato</label>
+  <input
+    name="Formato"
+    value="${p.Formato || ''}"
+  >
+</div>
+
+<div class="form-group">
+  <label>ID Archivo Drive</label>
+  <input
+    name="ID_Archivo_Drive"
+    value="${p.ID_Archivo_Drive || ''}"
+  >
+</div>
+
+
+<div class="form-group">
+  <label>ID Imagen Preview</label>
+  <input
+    name="ID_Imagen_Preview"
+    value="${p.ID_Imagen_Preview || ''}"
+    placeholder="ID de la imagen en Google Drive"
+  >
+</div>
                     <div class="form-group"><label>Estado</label>
                         <select name="Estado"><option value="ACTIVO" ${p.Estado==='ACTIVO'?'selected':''}>ACTIVO</option>
                         <option value="INACTIVO" ${p.Estado==='INACTIVO'?'selected':''}>INACTIVO</option></select>
@@ -2779,8 +3269,36 @@ if (!confirmado) return;
                     <div class="form-group"><label>Nombre</label><input name="Nombre" required></div>
                     <div class="form-group"><label>Categoría</label><input name="Categoria"></div>
                     <div class="form-group"><label>Descripción</label><input name="Descripcion"></div>
-                    <div class="form-group"><label>Precio</label><input name="Precio"></div>
-                    <div class="form-group"><label>Formato</label><input name="Formato"></div>
+                    <div class="form-group">
+    <label>Precio Cuba</label>
+    <input name="Precio_Cuba" type="number" step="any">
+</div>
+
+<div class="form-group">
+    <label>Precio Extranjero</label>
+    <input name="Precio_Extranjero" type="number" step="any">
+</div>
+
+<div class="form-group">
+    <label>Formato</label>
+    <input name="Formato">
+</div>
+
+<div class="form-group">
+    <label>ID Archivo Drive</label>
+    <input 
+      name="ID_Archivo_Drive"
+>
+</div>
+
+<div class="form-group">
+  <label>ID Imagen Preview</label>
+  <input
+    name="ID_Imagen_Preview"
+    placeholder="ID de la imagen en Google Drive"
+  >
+</div>
+
                     <div class="form-group"><label>Estado</label>
                         <select name="Estado"><option value="ACTIVO">ACTIVO</option><option value="INACTIVO">INACTIVO</option></select>
                     </div>
