@@ -18,7 +18,7 @@
   <header class="header" role="banner">
     <div class="container header-grid">
       <div class="logo">
-        <span class="logo-icon">✦</span>
+        <span class="logo-zt">ZT</span>
         <div class="logo-text-group">
           <span class="logo-text">ZONA TOTAL</span>
           <span class="logo-sub">SERVICIOS</span>
@@ -32,16 +32,39 @@
       <nav class="nav" id="mainNav" role="navigation" aria-label="Navegación principal">
         <ul class="nav-list">
           <li><a href="#productos" class="nav-link" data-scroll>Productos</a></li>
-          <li>
-            <button class="btn-cart" id="btnCart" aria-label="Abrir carrito" aria-expanded="false">
-              <svg class="cart-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-              </svg>
-              <span class="cart-badge" id="cartBadge" aria-hidden="true">0</span>
-            </button>
-          </li>
+       <li>
+  <button
+    class="btn-cart"
+    id="btnCart"
+    aria-label="Mis compras"
+    aria-expanded="false"
+    title="Mis compras"
+  >
+    <svg
+      class="cart-icon"
+      viewBox="0 0 24 24"
+      width="21"
+      height="21"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M6 7h12l1 13H5L6 7z"></path>
+      <path d="M9 7V5a3 3 0 0 1 6 0v2"></path>
+    </svg>
+
+    <span>Mis compras</span>
+<span
+  class="cart-badge"
+  id="cartBadge"
+  aria-hidden="true"
+>
+  0
+</span>
+  </button>
+</li>
           <li>
             <button class="btn-notification" id="btnNotificaciones" aria-label="Ver novedades" aria-expanded="false">
               <svg class="bell-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -257,17 +280,63 @@
     </section>
   </main>
 
+
+<div id="barraCompraFlotante" style="
+  display:none;
+  position:fixed;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  z-index:2500;
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+  box-shadow:0 12px 35px rgba(15,23,42,0.18);
+  padding:12px 16px;
+  min-width:320px;
+  max-width:calc(100% - 32px);
+">
+  <div style="
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+  ">
+    <div>
+      <div id="barraCompraCantidad" style="
+        font-weight:700;
+        color:#172033;
+      ">
+        0 seleccionadas
+      </div>
+
+      <div id="barraCompraTotal" style="
+        font-size:13px;
+        color:#64748b;
+        margin-top:2px;
+      ">
+        Total: 0
+      </div>
+    </div>
+
+    <button
+      id="btnContinuarCompraFlotante"
+      class="btn btn-primary"
+      type="button"
+    >
+      CONTINUAR COMPRA
+    </button>
+  </div>
+</div>
+
   <!-- FOOTER -->
   <footer class="footer" role="contentinfo">
     <div class="container footer-grid">
       <div class="footer-brand">
         <span class="footer-logo">✦ ZONA TOTAL SERVICIOS</span>
-        <p class="footer-desc">Productos digitales y oportunidades en un solo espacio.</p>
+        
       </div>
-      <nav class="footer-nav" aria-label="Enlaces del pie de página">
-        <a href="#productos" data-scroll>Productos</a>
-        <a href="#reventa" data-scroll>Reventa</a>
-      </nav>
+      <p class="footer-desc">Productos digitales y oportunidades en un solo espacio.</p>
       <p class="footer-copy">&copy; 2026 Zona Total. Todos los derechos reservados.</p>
     </div>
   </footer>
@@ -315,16 +384,122 @@
     </div>
   </div>
 
+<!-- MODAL FICHA DE PLANTILLA -->
+<div
+  class="modal-overlay modal-ficha-plantilla-overlay"
+  id="modalFichaPlantillaOverlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="fichaPlantillaNombre"
+  aria-hidden="true"
+>
+  <div class="modal modal-ficha-plantilla">
+
+    <div class="modal-header ficha-plantilla-header">
+      <div>
+        <span class="ficha-plantilla-eyebrow">
+          ✦ PLANTILLA PROFESIONAL PREMIUM
+        </span>
+
+        <h3
+          id="fichaPlantillaNombre"
+          class="modal-title"
+        >
+          Plantilla
+        </h3>
+      </div>
+
+      <button
+        class="modal-close"
+        id="modalFichaPlantillaClose"
+        aria-label="Cerrar ficha"
+      >
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <div class="ficha-plantilla-contenido">
+
+        <div class="ficha-plantilla-icono">
+          📄
+        </div>
+
+        <div class="ficha-plantilla-detalles">
+
+          <p
+            id="fichaPlantillaDescripcion"
+            class="ficha-plantilla-descripcion"
+          ></p>
+
+          <div class="ficha-precios">
+
+  <div class="ficha-precio-card">
+    <span class="ficha-precio-label">
+      🇨🇺 Precio Cuba
+    </span>
+    <strong id="fichaPrecioCuba">0 CUP</strong>
+  </div>
+
+  <div class="ficha-precio-card">
+    <span class="ficha-precio-label">
+      🌎 Precio extranjero
+    </span>
+    <strong id="fichaPrecioExtranjero">0 USD / EUR</strong>
+  </div>
+
+  <div class="ficha-precio-card">
+    <span class="ficha-precio-label">
+      📄 Formato
+    </span>
+    <strong id="fichaPlantillaFormato">Digital</strong>
+  </div>
+
+</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="modal-footer" style="justify-content: center; gap: 12px;">
+
+  <button
+    class="btn btn-primary"
+    id="btnObtenerPlantilla"
+  >
+    OBTENER
+  </button>
+
+  <button
+    class="btn-modal-action"
+    id="modalFichaPlantillaCerrar"
+  >
+    CERRAR
+  </button>
+
+</div>
+
+  </div>
+</div>
+
+
   <!-- MODAL CARRITO -->
   <div class="modal-overlay" id="modalCartOverlay" role="dialog" aria-modal="true" aria-labelledby="modalCartTitle" aria-hidden="true">
     <div class="modal modal-cart">
       <div class="modal-header">
-        <h3 id="modalCartTitle" class="modal-title">Tu carrito</h3>
+        <h3 id="modalCartTitle" class="modal-title">Mis compras</h3>
         <button class="modal-close" id="modalCartClose" aria-label="Cerrar carrito">✕</button>
       </div>
       <div class="modal-body" id="modalCartBody">
-        <div id="cartItems"></div>
-        <div class="cart-footer" id="cartFooter">
+        <div id="cartItems">
+  <p style="text-align:center; color: var(--text-secondary);">
+    Aquí aparecerán tus compras.
+  </p>
+</div>
+        <div class="cart-footer" id="cartFooter" style="display:none;">
           <div class="cart-summary">
             <span class="cart-count-label" id="cartCountLabel">0 productos seleccionados</span>
           </div>
