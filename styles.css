@@ -1622,3 +1622,23 @@ padding: 10px 18px;
 .btn-eliminar-seleccion:active {
   transform: scale(0.97);
 }
+
+
+.zona-total-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  color: #172033;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.zona-total-home:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
