@@ -1028,6 +1028,38 @@ const ID_REVENDEDOR = parametros.get('v');
       const logoutBtn = document.getElementById('logoutBtn');
       const notifBell = document.getElementById('notifBell');
       const notifCounter = document.getElementById('notifCounter');
+async function actualizarContadorNotificaciones() {
+  if (!notifCounter || !ID_REVENDEDOR) return;
+
+  try {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'obtenerNotificacionesRevendedor',
+        idVendedor: ID_REVENDEDOR
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) return;
+
+    const noVistas = (datos.notificaciones || []).filter(n =>
+      String(n.Vista || '').trim().toUpperCase() !== 'SI'
+    ).length;
+
+    if (noVistas > 0) {
+      notifCounter.textContent = noVistas;
+      notifCounter.style.display = 'inline-block';
+    } else {
+      notifCounter.textContent = '0';
+      notifCounter.style.display = 'none';
+    }
+
+  } catch (error) {
+    console.error('Error al actualizar contador de notificaciones:', error);
+  }
+}
 
       // --- TOAST ---
       function showToast(msg, type = 'info') {
@@ -1072,12 +1104,40 @@ function formatearFecha(fecha) {
       }
 
       menuLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          const sec = link.dataset.section;
-          if (sec) navigateTo(sec);
-        });
-      });
+  link.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const sec = link.dataset.section;
+
+    if (!sec) return;
+
+    navigateTo(sec);
+
+    if (sec === 'clientes') {
+      await cargarClientesRevendedor();
+    }
+
+    if (sec === 'ventas') {
+      await cargarVentasRevendedor();
+    }
+
+    if (sec === 'revendedores') {
+      await cargarRevendedoresDirectos();
+    }
+
+    if (sec === 'licencias') {
+      await cargarLicenciasRevendidas();
+    }
+
+    if (sec === 'renovaciones') {
+      await cargarRenovacionesRevendedor();
+    }
+
+    if (sec === 'notificaciones') {
+      await cargarNotificacionesRevendedor();
+    }
+  });
+});
 
       hamburger.addEventListener('click', () => {
         sidebar.classList.toggle('open');
@@ -1103,7 +1163,7 @@ function formatearFecha(fecha) {
       });
 
       // --- NOTIFICACIONES BELL ---
-      notifBell.addEventListener('click', async () => {
+notifBell.addEventListener('click', async () => {
   navigateTo('notificaciones');
   await marcarNotificacionesComoVistas();
 });
@@ -1540,6 +1600,66 @@ rechazarVenta: (id) => {
   msg.textContent = `¿Deseas rechazar el pago de la compra ${id}?`;
   modalRechazarVenta.classList.add('show');
 }
+
+
+,
+aprobarPedido: async (idsCompras) => {
+  if (!Array.isArray(idsCompras) || idsCompras.length === 0) return;
+
+  for (const idCompra of idsCompras) {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'aprobarCompraRevendedor',
+        idVendedor: ID_REVENDEDOR,
+        idCompra: idCompra
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(
+        datos.mensaje || `No se pudo aprobar ${idCompra}.`,
+        'error'
+      );
+      return;
+    }
+  }
+
+  showToast('Pedido completo aprobado correctamente.', 'success');
+  await cargarVentasRevendedor();
+},
+
+rechazarPedido: async (idsCompras) => {
+  if (!Array.isArray(idsCompras) || idsCompras.length === 0) return;
+
+  for (const idCompra of idsCompras) {
+    const respuestaBackend = await fetch(BACKEND_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'rechazarCompraRevendedor',
+        idVendedor: ID_REVENDEDOR,
+        idCompra: idCompra
+      })
+    });
+
+    const datos = await respuestaBackend.json();
+
+    if (!datos.ok) {
+      showToast(
+        datos.mensaje || `No se pudo rechazar ${idCompra}.`,
+        'error'
+      );
+      return;
+    }
+  }
+
+  showToast('Pedido completo rechazado.', 'success');
+  await cargarVentasRevendedor();
+}
+
+
       };
 
       // --- ACTUALIZAR CUENTA (formulario) ---
@@ -1728,7 +1848,7 @@ async function cargarClientesRevendedor() {
       return;
     }
 
-    const clientes = datos.clientes || [];
+    const clientes = [...(datos.clientes || [])].reverse();
     const tabla = document.getElementById('tablaClientes');
 
     document.getElementById('cardClientes').textContent = clientes.length;
@@ -1784,7 +1904,7 @@ async function cargarVentasRevendedor() {
       return;
     }
 
-    const compras = datos.compras || [];
+    const compras = [...(datos.compras || [])].reverse();
 const tabla = document.getElementById('tablaVentas');
 
 document.getElementById('cardVentas').textContent = compras.length;
@@ -1816,44 +1936,136 @@ document.getElementById('resVentasClientes').textContent = totalVentasAprobadas;
       return;
     }
 
-    tabla.innerHTML = compras.map(c => {
-      let acciones = '—';
+    const grupos = {};
 
-      if (c.Estado_Pago === 'PENDIENTE') {
-        acciones = `
-          <div class="acciones-cell">
-            <button
-              class="btn btn-success"
-              onclick="accionesRevendedor.aprobarVenta('${c.ID_Compra}')">
-              Aprobar
-            </button>
+compras.forEach(c => {
+  const claveGrupo =
+    String(c.ID_Pedido || '').trim() ||
+    String(c.ID_Compra || '').trim();
 
-            <button
-              class="btn btn-danger"
-              onclick="accionesRevendedor.rechazarVenta('${c.ID_Compra}')">
-              Rechazar
-            </button>
-          </div>
-        `;
-      }
+  if (!grupos[claveGrupo]) {
+    grupos[claveGrupo] = [];
+  }
 
-      return `
-        <tr>
-          <td>${c.ID_Compra || '—'}</td>
-          <td>${c.ID_Cliente || '—'}</td>
-          <td>${c.Cliente || '—'}</td>
-          <td>${c.Productos || '—'}</td>
-          <td>${c.Total || '—'}</td>
-          <td>
-            <span class="badge-estado badge-${c.Estado_Pago}">
-              ${c.Estado_Pago || '—'}
-            </span>
-          </td>
-          <td>${c.Fecha_Compra || '—'}</td>
-          <td>${acciones}</td>
-        </tr>
-      `;
-    }).join('');
+  grupos[claveGrupo].push(c);
+});
+
+tabla.innerHTML = Object.entries(grupos).map(([idPedido, grupo]) => {
+
+  const primera = grupo[0];
+
+  const totalPedido = grupo.reduce((total, c) => {
+    const importe = Number(
+      String(c.Total || '0')
+        .replace(/\s/g, '')
+        .replace(',', '.')
+    );
+
+    return total + (Number.isFinite(importe) ? importe : 0);
+  }, 0);
+
+  const productosHtml = grupo.map(c => `
+    <div style="
+      padding:6px 0;
+      border-bottom:1px solid #eee5e0;
+    ">
+      <strong>${c.Productos || '—'}</strong>
+      <div style="
+        font-size:12px;
+        color:#7a6a62;
+        margin-top:2px;
+      ">
+        ${c.ID_Compra || '—'} · ${c.Total || '0'}
+      </div>
+    </div>
+  `).join('');
+
+  const todosPendientes = grupo.every(c =>
+    String(c.Estado_Pago || '').trim().toUpperCase() === 'PENDIENTE'
+  );
+
+  const todosAprobados = grupo.every(c =>
+    String(c.Estado_Pago || '').trim().toUpperCase() === 'APROBADO'
+  );
+
+  const todosRechazados = grupo.every(c =>
+    String(c.Estado_Pago || '').trim().toUpperCase() === 'RECHAZADO'
+  );
+
+  let estadoGrupo = 'MIXTO';
+
+  if (todosPendientes) {
+    estadoGrupo = 'PENDIENTE';
+  } else if (todosAprobados) {
+    estadoGrupo = 'APROBADO';
+  } else if (todosRechazados) {
+    estadoGrupo = 'RECHAZADO';
+  }
+
+  const idsPendientes = grupo
+  .filter(c =>
+    String(c.Estado_Pago || '').trim().toUpperCase() === 'PENDIENTE'
+  )
+  .map(c => c.ID_Compra);
+
+let acciones = '—';
+
+if (idsPendientes.length > 0) {
+  const idsJson = JSON.stringify(idsPendientes);
+
+  acciones = `
+    <div style="
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    ">
+      <button
+        class="btn btn-success"
+        onclick='accionesRevendedor.aprobarPedido(${idsJson})'>
+        Aprobar todo
+      </button>
+
+      <button
+        class="btn btn-danger"
+        onclick='accionesRevendedor.rechazarPedido(${idsJson})'>
+        Rechazar todo
+      </button>
+    </div>
+  `;
+}
+
+  return `
+    <tr>
+      <td>
+        <strong>${idPedido}</strong>
+      </td>
+
+      <td>${primera.ID_Cliente || '—'}</td>
+
+      <td>${primera.Cliente || '—'}</td>
+
+      <td>
+        ${productosHtml}
+      </td>
+
+      <td>
+        <strong>${totalPedido}</strong>
+      </td>
+
+      <td>
+        <span class="badge-estado badge-${estadoGrupo}">
+          ${estadoGrupo}
+        </span>
+      </td>
+
+      <td>${primera.Fecha_Compra || '—'}</td>
+
+      <td>
+        ${acciones || '—'}
+      </td>
+    </tr>
+  `;
+}).join('');
 
   } catch (error) {
     console.error(error);
@@ -1878,7 +2090,7 @@ async function cargarRevendedoresDirectos() {
       return;
     }
 
-    const revendedores = datos.revendedores || [];
+    const revendedores = [...(datos.revendedores || [])].reverse();
     const tabla = document.getElementById('tablaRevendedores');
 
     document.getElementById('cardRevendedores').textContent = revendedores.length;
@@ -1969,7 +2181,7 @@ async function cargarLicenciasRevendidas() {
       return;
     }
 
-    const reventas = datos.reventas || [];
+    const reventas = [...(datos.reventas || [])].reverse();
 const tabla = document.getElementById('tablaLicencias');
 
 document.getElementById('cardLicencias').textContent = reventas.length;
@@ -2348,7 +2560,7 @@ async function cargarRenovacionesRevendedor() {
       return;
     }
 
-    const renovaciones = datos.renovaciones || [];
+    const renovaciones = [...(datos.renovaciones || [])].reverse();
 const tabla = document.getElementById('tablaRenovaciones');
 
 document.getElementById('cardRenovaciones').textContent = renovaciones.length;
@@ -2403,13 +2615,8 @@ document.getElementById('resRenovacionesCobradas').textContent = totalRenovacion
 
 resetUI();
 navigateTo('inicio');
+actualizarContadorNotificaciones();
 cargarDatosRevendedor();
-cargarClientesRevendedor();
-cargarVentasRevendedor();
-cargarRevendedoresDirectos();
-cargarLicenciasRevendidas();
-cargarRenovacionesRevendedor();
-cargarNotificacionesRevendedor();
     })();
   </script>
 </body>
