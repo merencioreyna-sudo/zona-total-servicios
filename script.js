@@ -32,6 +32,7 @@ function cerrarSesion() {
   currentUser = null;
   pendingAction = null;
   actualizarHeader();
+  aplicarBloqueoMultimedia();
 }
 
  // { username, phone, email, role }
@@ -1813,13 +1814,15 @@ if (datosRevendedor.ok) {
     fechaInicio: datosRevendedor.fechaInicio,
     fechaFin: datosRevendedor.fechaFin,
     mercado: datosRevendedor.mercado,
-    precioReventaLicencia: datosRevendedor.precioReventaLicencia
+    precioReventaLicencia: datosRevendedor.precioReventaLicencia,
+    modalidad: datosRevendedor.modalidad
   };
 
-guardarSesion();
+  guardarSesion();
 
   cerrarModal(modalLoginOverlay);
   actualizarHeader();
+  aplicarBloqueoMultimedia();
 
   if (pendingAction === 'compra') {
     pendingAction = null;
@@ -2241,7 +2244,8 @@ if (modalPagoActionBtn) {
   // =============================================
 // 20. REVENDEDOR - FLUJO COMPLETO
 // =============================================
-
+const parametrosEntrada = new URLSearchParams(window.location.search);
+const entradaPremium = parametrosEntrada.get('modalidad') === 'premium';
 function abrirFormularioRevendedor() {
   formRevendedorError.style.display = 'none';
   formRevendedorError.textContent = '';
@@ -2286,6 +2290,13 @@ if (
   precioReventa.value = '';
 }
 }
+if (entradaPremium) {
+  const accesoPremium = document.getElementById('accesoPremiumInfo');
+
+  if (accesoPremium) {
+    accesoPremium.style.display = 'block';
+  }
+}
 
 lastFocusedElement = document.activeElement;
 abrirModal(modalFormularioRevendedorOverlay);
@@ -2317,6 +2328,12 @@ if (btnRevendedor) {
     e.stopPropagation();
     iniciarFlujoRevendedor();
   });
+}
+
+if (entradaPremium) {
+  setTimeout(() => {
+    iniciarFlujoRevendedor();
+  }, 300);
 }
 
 
@@ -2439,7 +2456,8 @@ if (btnFormRevendedorEnviar) {
           referidoPor: referidoPor,
           porcentaje: '',
           mercado: mercado,
-          precioReventa: precioReventa
+          precioReventa: precioReventa,
+          modalidad: entradaPremium ? 'PREMIUM' : ''
         })
       });
 
@@ -2701,6 +2719,78 @@ function actualizarHeader() {
   // =============================================
   // 24. INICIALIZACIÓN
   // =============================================
+
+function aplicarBloqueoMultimedia() {
+  const botonHome = document.getElementById('zonaTotalHome');
+  if (!botonHome) return;
+
+  const esPremium = currentUser
+    && currentUser.role === 'revendedor'
+    && String(currentUser.modalidad || '').trim().toUpperCase() === 'PREMIUM';
+
+  if (esPremium) {
+    botonHome.style.opacity = '1';
+    botonHome.style.pointerEvents = 'auto';
+    botonHome.style.cursor = 'pointer';
+    botonHome.removeAttribute('title');
+  } else {
+    botonHome.style.opacity = '0.45';
+    botonHome.style.pointerEvents = 'auto';
+    botonHome.style.cursor = 'not-allowed';
+    botonHome.setAttribute('title', 'Acceso Premium requerido');
+  }
+
+  const badgePremium = document.getElementById('premiumBadge');
+  if (badgePremium) {
+    if (esPremium) {
+      badgePremium.style.display = 'block';
+    } else {
+      badgePremium.style.display = 'none';
+    }
+  }
+}
+
+function interceptarClickHome(evento) {
+  const esPremium = currentUser
+    && currentUser.role === 'revendedor'
+    && String(currentUser.modalidad || '').trim().toUpperCase() === 'PREMIUM';
+
+  if (!esPremium) {
+    evento.preventDefault();
+    evento.stopPropagation();
+
+    const aviso = document.createElement('div');
+    aviso.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#0b1e33;color:white;padding:0.9rem 1.6rem;border-radius:60px;font-weight:500;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.2);';
+   aviso.textContent = 'Acceso Premium requerido...';
+    document.body.appendChild(aviso);
+    setTimeout(() => aviso.remove(), 3000);
+    
+
+} else {
+    const datosPase = {
+      idVendedor: currentUser.idVendedor,
+      usuario: currentUser.username,
+      correo: currentUser.email,
+      telefono: currentUser.phone
+    };
+
+    localStorage.setItem('zonaTotalPremiumPase', JSON.stringify(datosPase));
+
+    const botonHome = document.getElementById('zonaTotalHome');
+    if (botonHome) {
+      const urlOriginal = botonHome.getAttribute('href');
+      const urlLimpia = urlOriginal.split('?')[0];
+      const parametros = new URLSearchParams({
+        premium: '1',
+        idVendedor: datosPase.idVendedor,
+        usuario: datosPase.usuario,
+        correo: datosPase.correo,
+        telefono: datosPase.telefono
+      });
+      botonHome.setAttribute('href', urlLimpia + '?' + parametros.toString());
+    }
+  }
+}
   
 actualizarBadge();
 actualizarHeader();
@@ -2713,6 +2803,14 @@ cargarProductosBackend().then(() => {
   }
 });
 cargarNotificacionesPagina();
+
+
+aplicarBloqueoMultimedia();
+
+const botonHomeParaClick = document.getElementById('zonaTotalHome');
+if (botonHomeParaClick) {
+  botonHomeParaClick.addEventListener('click', interceptarClickHome);
+}
 
   console.log('Zona Total Servicios — Página funcionando correctamente.');
   console.log('Novedades activas:', novedades.filter(item => item.nueva === true).length);
