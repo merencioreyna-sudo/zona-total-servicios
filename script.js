@@ -836,6 +836,7 @@ if (!currentUser) {
 if (!data) return;
 
 if (categoryId === 'plantillas-premium') {
+    productosBackend = [...productosBackend].reverse();
   const productosReales = productosBackend
     .filter(producto =>
       String(producto.Categoria || '').trim().toLowerCase() === 'plantillas premium' &&
