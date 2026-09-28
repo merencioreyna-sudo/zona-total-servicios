@@ -185,10 +185,12 @@ async function cargarProductosBackend() {
       return;
     }
 
-    productosBackend = (data.productos || []).filter(
-      producto =>
-        String(producto.Estado || '').trim().toUpperCase() === 'ACTIVO'
-    );
+        productosBackend = (data.productos || [])
+      .filter(
+        producto =>
+          String(producto.Estado || '').trim().toUpperCase() === 'ACTIVO'
+      )
+      .reverse();
 
     console.log('PRODUCTOS CARGADOS:', productosBackend.length);
 
@@ -836,7 +838,7 @@ if (!currentUser) {
 if (!data) return;
 
 if (categoryId === 'plantillas-premium') {
-    productosBackend = [...productosBackend].reverse();
+    
   const productosReales = productosBackend
     .filter(producto =>
       String(producto.Categoria || '').trim().toLowerCase() === 'plantillas premium' &&
