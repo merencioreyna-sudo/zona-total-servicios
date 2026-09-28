@@ -2814,7 +2814,6 @@ if (botonHomeParaClick) {
 
   console.log('Zona Total Servicios — Página funcionando correctamente.');
   console.log('Novedades activas:', novedades.filter(item => item.nueva === true).length);
-  console.log('Usuario actual:', currentUser);
-  console.log('Carrito:', cart);
+  
 
 })();
