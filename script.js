@@ -955,7 +955,7 @@ if (categoryId !== 'plantillas-premium') {
 let html = '';
 
 data.products.forEach(product => {
-  const esNuevo = product === data.products[0];
+    const esNuevo = data.products.indexOf(product) < 5;
   const inCart = estaEnCarrito(product.id);
 
   const precioProducto = Number(product.price) || 0;
