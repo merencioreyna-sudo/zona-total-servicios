@@ -976,9 +976,10 @@ data.products.forEach(product => {
   btnText = 'VER PRODUCTO';
   btnDisabled = inCart ? 'disabled' : '';
 }
-    html += `
+        html += `
       <div class="producto-card">
         <div class="producto-visual">
+          ${esNuevo ? '<span class="producto-badge-nuevo">NUEVO</span>' : ''}
   ${
     product.idImagenPreview
       ? `
