@@ -906,7 +906,7 @@ ul { list-style: none; }
 .footer-grid { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
 .footer-brand { display: flex; flex-direction: column; gap: 2px; }
 .footer-logo { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.02em; }
-.footer-desc { font-size: 0.7rem; color: var(--text-secondary); }
+.footer-desc { font-size: 0.7rem; color: #0f172a; }
 .footer-nav { display: flex; gap: 18px; }
 .footer-nav a { font-size: 0.72rem; color: var(--text-secondary); transition: color 0.3s ease; position: relative; }
 .footer-nav a::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 1px; background: var(--color-1); transition: width 0.3s ease; }
@@ -914,7 +914,7 @@ ul { list-style: none; }
 .footer-nav a:hover::after, .footer-nav a:focus-visible::after { width: 100%; }
 .footer-copy {
   font-size: 0.6rem;
-  color: var(--text-muted);
+  color: #0f172a;
   width: auto;
   text-align: center;
   margin: 0;
