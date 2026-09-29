@@ -3421,6 +3421,30 @@ document.getElementById('btnCerrarSesionAdmin').addEventListener('click', () => 
     window.location.href = 'index.html';
 });
 
+// ----- ZONA TOTAL HOME (SOLO PROPIETARIA) -----
+document.getElementById('btnZonaTotalHomeAdmin').addEventListener('click', () => {
+    const datosPase = {
+        idVendedor: 'PROPIETARIA',
+        usuario: usuarioSesion.username || 'PROPIETARIA',
+        correo: usuarioSesion.email || '',
+        telefono: usuarioSesion.phone || ''
+    };
+
+    localStorage.setItem('zonaTotalPremiumPase', JSON.stringify(datosPase));
+
+    const parametros = new URLSearchParams({
+        premium: '1',
+        idVendedor: datosPase.idVendedor,
+        usuario: datosPase.usuario,
+        correo: datosPase.correo,
+        telefono: datosPase.telefono
+    });
+
+    window.location.href =
+        'https://merencioreyna-sudo.github.io/zona-total-peliculas/?' +
+        parametros.toString();
+});        
+
 
         // ----- INICIALIZAR -----
         // adminPanel ya está visible (sin login)
