@@ -1686,3 +1686,257 @@ padding: 10px 18px;
 .footer-soporte a:hover {
   text-decoration: underline;
 }
+
+/* ===== CAJA DE DESCARGA DE APP EN FOOTER ===== */
+.footer-app-box {
+    text-align: center;
+    margin: 10px auto 10px auto; /* auto a los lados para que se centre */
+    padding: 20px;               /* Relleno equilibrado */
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    border-radius: 16px;
+    width: 650px;                /* 👈 ANCHO FIJO Y CUADRADO */
+    max-width: 90%;              /* Para que no se salga en celulares */
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+    box-sizing: border-box;
+}
+
+.footer-app-box h3 {
+    color: white;
+    margin: 0 0 8px 0;
+    font-size: 1.15rem;
+}
+
+.footer-app-box p {
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.footer-app-box a.boton-animado {
+    display: inline-block;
+    background-color: #ffffff;
+    color: #1e40af;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.footer-app-box a.boton-animado:hover {
+    transform: scale(1.05);
+    background-color: #f1f5f9;
+}
+
+/* ===== ANIMACIONES DEL BOTÓN ===== */
+.boton-animado {
+    animation: brillo 2s ease-in-out infinite, rebote 1.5s ease-in-out infinite;
+}
+
+@keyframes brillo {
+    0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+    100% { box-shadow: 0 0 20px 5px rgba(255,255,255,0.7); }
+}
+
+@keyframes rebote {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+
+/* ===== NUEVO DISEÑO DEL FOOTER EN 3 COLUMNAS ===== */
+.footer-3-columnas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    gap: 20px;
+}
+
+/* Columna Izquierda */
+.footer-col-izq {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.footer-col-izq .footer-logo {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.footer-col-izq .footer-soporte {
+    font-size: 13px;
+    margin: 0 0 10px 0;
+}
+
+.footer-col-izq .footer-soporte a {
+    color: #e50914;
+    text-decoration: none;
+}
+
+.footer-col-izq .footer-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.footer-col-izq .footer-copy {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.footer-col-izq .footer-politica a {
+    font-size: 0.85rem;
+    color: #3b82f6;
+    text-decoration: underline;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.footer-col-izq .footer-politica a:hover {
+    color: #2563eb;
+}
+
+/* Columna Centro (App) */
+.footer-col-centro {
+    display: flex;
+    justify-content: center;
+    flex: 1;
+}
+
+.footer-app-box {
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 320px;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+    box-sizing: border-box;
+}
+
+.footer-app-box h3 {
+    color: white;
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+}
+
+.footer-app-box p {
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.footer-app-box a.boton-animado {
+    display: inline-block;
+    background-color: #ffffff;
+    color: #1e40af;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.footer-app-box a.boton-animado:hover {
+    transform: scale(1.05);
+    background-color: #f1f5f9;
+}
+
+/* ===== REDES SOCIALES EN EL FOOTER ===== */
+.footer-col-der {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.footer-redes-titulo {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.footer-redes-iconos {
+    display: flex;
+    gap: 10px;
+}
+
+/* Tamaño del círculo */
+.footer-redes-iconos a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 1.3rem; /* 👈 Icono más grande */
+    transition: all 0.3s ease;
+    text-decoration: none;
+    background: #f8fafc; /* Fondo clarito por defecto */
+}
+
+/* Colores originales SIEMPRE visibles */
+.footer-redes-iconos a[title="WhatsApp"] { color: #25D366; }
+.footer-redes-iconos a[title="Telegram"] { color: #0088cc; }
+.footer-redes-iconos a[title="Facebook"] { color: #1877F2; }
+.footer-redes-iconos a[title="Instagram"] { color: #E1306C; }
+
+/* Efecto al pasar el mouse: se vuelven sólidos */
+.footer-redes-iconos a:hover {
+    color: #ffffff;
+    transform: translateY(-4px);
+}
+
+.footer-redes-iconos a[title="WhatsApp"]:hover { background: #25D366; }
+.footer-redes-iconos a[title="Telegram"]:hover { background: #0088cc; }
+.footer-redes-iconos a[title="Facebook"]:hover { background: #1877F2; }
+.footer-redes-iconos a[title="Instagram"]:hover { background: #E1306C; }
+
+/* ===== ANIMACIONES DEL BOTÓN ===== */
+.boton-animado {
+    animation: brillo 2s ease-in-out infinite, rebote 1.5s ease-in-out infinite;
+}
+
+@keyframes brillo {
+    0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+    100% { box-shadow: 0 0 20px 5px rgba(255,255,255,0.7); }
+}
+
+@keyframes rebote {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .footer-3-columnas {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .footer-col-izq {
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .footer-col-centro {
+        margin-bottom: 20px;
+    }
+
+    .footer-col-der {
+        align-items: center;
+        margin-top: 20px;
+    }
+}
