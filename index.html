@@ -12,6 +12,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- AQUÍ ES DONDE DEBES PEGAR EL <style> -->
+<style>
+  @keyframes girarSpinner {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
 </head>
 <body>
 
@@ -435,14 +443,30 @@
         </div>
         <button class="modal-close" id="modalColeccionClose" aria-label="Cerrar colección">✕</button>
       </div>
+     
       <div class="modal-body" id="modalColeccionBody">
         <div class="coleccion-stats">
-          <span class="coleccion-count" id="coleccionCount">0 productos disponibles</span>
+       <span class="coleccion-count" id="coleccionCount">0 productos disponibles</span>
         </div>
+
         <div class="productos-grid" id="productosColeccion">
           <!-- Productos dinámicos desde JavaScript -->
         </div>
+
+<!-- SPINNER DE CARGA DE PRODUCTOS -->
+<div id="spinnerColeccion" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 16px;">
+  <div style="
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e2e8f0;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: girarSpinner 0.8s linear infinite;
+  "></div>
+  <p style="color: #64748b; font-size: 0.9rem; font-weight: 500; margin: 0;">Cargando productos...</p>
+</div>
       </div>
+
       <div class="modal-footer">
         <button class="btn-modal-action" id="modalColeccionActionBtn">Cerrar colección</button>
       </div>
@@ -505,6 +529,7 @@
 
   </div>
 </div>
+
 
   <!-- MODAL CARRITO -->
   <div class="modal-overlay" id="modalCartOverlay" role="dialog" aria-modal="true" aria-labelledby="modalCartTitle" aria-hidden="true">
@@ -960,7 +985,8 @@
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
   ">
 </div>
-  
+
+
   <script src="script.js"></script>
 </body>
 </html>
