@@ -1087,14 +1087,16 @@ fichaPrecioExtranjero.textContent = `${productData.precioExtranjero} USD / EUR`;
 fichaFormato.textContent = productData.formato || 'Digital';
 if (productData.idImagenPreview) {
   fichaIcono.innerHTML = `
-    <img
-      src="https://drive.google.com/thumbnail?id=${encodeURIComponent(productData.idImagenPreview)}&sz=w1000"
-      alt="${productData.name}"
-      class="ficha-plantilla-preview-img"
-      style="cursor: zoom-in;"
-      onclick="abrirVisorImagen(this.src)"
-    >
-  `;
+  <img
+    src="https://lh3.googleusercontent.com/d/${encodeURIComponent(productData.idImagenPreview)}=w600"
+    alt="${productData.name}"
+    class="ficha-plantilla-preview-img"
+    loading="lazy"
+    decoding="async"
+    style="cursor: zoom-in;"
+    onclick="abrirVisorImagen(this.src)"
+  >
+`;
 }
 else {
   fichaIcono.innerHTML = '📄';
@@ -1157,14 +1159,16 @@ if (fichaEyebrow) {
 
         if (productData.idImagenPreview) {
   fichaIcono.innerHTML = `
-    <img
-      src="https://drive.google.com/thumbnail?id=${encodeURIComponent(productData.idImagenPreview)}&sz=w1000"
-      alt="${productData.name}"
-      class="ficha-plantilla-preview-img"
-      style="cursor: zoom-in;"
-      onclick="abrirVisorImagen(this.src)"
-    >
-  `;
+  <img
+    src="https://lh3.googleusercontent.com/d/${encodeURIComponent(productData.idImagenPreview)}=w600"
+    alt="${productData.name}"
+    class="ficha-plantilla-preview-img"
+    loading="lazy"
+    decoding="async"
+    style="cursor: zoom-in;"
+    onclick="abrirVisorImagen(this.src)"
+  >
+`;
 }
         else {
           fichaIcono.innerHTML = productData.icon || '📦';
