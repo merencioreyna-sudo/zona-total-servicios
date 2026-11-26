@@ -984,18 +984,15 @@ data.products.forEach(product => {
     product.idImagenPreview
       ? `
         <img
-          src="https://drive.google.com/thumbnail?id=${encodeURIComponent(product.idImagenPreview)}&sz=w400"
+          src="https://lh3.googleusercontent.com/d/${encodeURIComponent(product.idImagenPreview)}=w400"
           alt="${product.name}"
           loading="lazy"
           decoding="async"
           class="producto-preview-img"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          style="content-visibility: auto;"
         >
-
-        <span
-          class="icon-placeholder"
-          style="display:none;"
-        >
+        <span class="icon-placeholder" style="display:none;">
           ${product.icon || '📄'}
         </span>
       `
