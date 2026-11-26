@@ -458,98 +458,53 @@
   aria-labelledby="fichaPlantillaNombre"
   aria-hidden="true"
 >
-  <div class="modal modal-ficha-plantilla">
+  <div class="modal modal-ficha-plantilla" style="display: flex; flex-direction: column; max-height: 90vh;">
 
-    <div class="modal-header ficha-plantilla-header">
+    <!-- HEADER FIJO -->
+    <div class="modal-header ficha-plantilla-header" style="flex-shrink: 0;">
       <div>
         <span class="ficha-plantilla-eyebrow">
           ✦ PLANTILLA PROFESIONAL PREMIUM
         </span>
-
-        <h3
-          id="fichaPlantillaNombre"
-          class="modal-title"
-        >
+        <h3 id="fichaPlantillaNombre" class="modal-title">
           Plantilla
         </h3>
       </div>
-
-      <button
-        class="modal-close"
-        id="modalFichaPlantillaClose"
-        aria-label="Cerrar ficha"
-      >
-        ✕
-      </button>
+      <button class="modal-close" id="modalFichaPlantillaClose" aria-label="Cerrar ficha">✕</button>
     </div>
 
-    <div class="modal-body">
-
+    <!-- BODY CON SCROLL -->
+    <div class="modal-body" style="flex: 1; overflow-y: auto; min-height: 0;">
       <div class="ficha-plantilla-contenido">
-
-        <div class="ficha-plantilla-icono">
-          📄
-        </div>
-
+        <div class="ficha-plantilla-icono">📄</div>
         <div class="ficha-plantilla-detalles">
-
-          <p
-            id="fichaPlantillaDescripcion"
-            class="ficha-plantilla-descripcion"
-          ></p>
-
+          <p id="fichaPlantillaDescripcion" class="ficha-plantilla-descripcion"></p>
           <div class="ficha-precios">
-
-  <div class="ficha-precio-card">
-    <span class="ficha-precio-label">
-      🇨🇺 Precio Cuba
-    </span>
-    <strong id="fichaPrecioCuba">0 CUP</strong>
-  </div>
-
-  <div class="ficha-precio-card">
-    <span class="ficha-precio-label">
-      🌎 Precio extranjero
-    </span>
-    <strong id="fichaPrecioExtranjero">0 USD / EUR</strong>
-  </div>
-
-  <div class="ficha-precio-card">
-    <span class="ficha-precio-label">
-      📄 Formato
-    </span>
-    <strong id="fichaPlantillaFormato">Digital</strong>
-  </div>
-
-</div>
-
+            <div class="ficha-precio-card">
+              <span class="ficha-precio-label">🇨🇺 Precio Cuba</span>
+              <strong id="fichaPrecioCuba">0 CUP</strong>
+            </div>
+            <div class="ficha-precio-card">
+              <span class="ficha-precio-label">🌎 Precio extranjero</span>
+              <strong id="fichaPrecioExtranjero">0 USD / EUR</strong>
+            </div>
+            <div class="ficha-precio-card">
+              <span class="ficha-precio-label">📄 Formato</span>
+              <strong id="fichaPlantillaFormato">Digital</strong>
+            </div>
+          </div>
         </div>
-
       </div>
-
     </div>
 
-    <div class="modal-footer" style="justify-content: center; gap: 12px;">
-
-  <button
-    class="btn btn-primary"
-    id="btnObtenerPlantilla"
-  >
-    OBTENER
-  </button>
-
-  <button
-    class="btn-modal-action"
-    id="modalFichaPlantillaCerrar"
-  >
-    CERRAR
-  </button>
-
-</div>
+    <!-- FOOTER FIJO -->
+    <div class="modal-footer" style="justify-content: center; gap: 12px; flex-shrink: 0;">
+      <button class="btn btn-primary" id="btnObtenerPlantilla">OBTENER</button>
+      <button class="btn-modal-action" id="modalFichaPlantillaCerrar">CERRAR</button>
+    </div>
 
   </div>
 </div>
-
 
   <!-- MODAL CARRITO -->
   <div class="modal-overlay" id="modalCartOverlay" role="dialog" aria-modal="true" aria-labelledby="modalCartTitle" aria-hidden="true">
