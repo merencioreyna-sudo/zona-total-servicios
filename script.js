@@ -235,6 +235,7 @@ async function cargarProductosBackend() {
   const coleccionDesc = document.getElementById('coleccionDesc');
   const coleccionCount = document.getElementById('coleccionCount');
   const productosColeccion = document.getElementById('productosColeccion');
+  const spinnerColeccion = document.getElementById('spinnerColeccion');
 
   const modalCartOverlay = document.getElementById('modalCartOverlay');
   const modalCartClose = document.getElementById('modalCartClose');
@@ -833,9 +834,22 @@ if (!currentUser) {
   // =============================================
   // 12. ABRIR COLECCIÓN (CATÁLOGO)
   // =============================================
-  function abrirColeccion(categoryId) {
+        function abrirColeccion(categoryId) {
   let data = productosData[categoryId];
 if (!data) return;
+
+    if (spinnerColeccion) {
+    spinnerColeccion.style.display = 'flex';
+  }
+  if (productosColeccion) {
+    productosColeccion.style.display = 'none';
+    productosColeccion.innerHTML = '';
+  }
+  if (coleccionCount) {
+    coleccionCount.style.display = 'none';
+  }
+
+  abrirModal(modalColeccionOverlay);
 
 if (categoryId === 'plantillas-premium') {
     
@@ -980,7 +994,7 @@ data.products.forEach(product => {
       <div class="producto-card">
         <div class="producto-visual">
           ${esNuevo ? '<span class="producto-badge-nuevo">NUEVO</span>' : ''}
-  ${
+${
     product.idImagenPreview
       ? `
         <img
@@ -1023,9 +1037,40 @@ data.products.forEach(product => {
     `;
   });
 
-  productosColeccion.innerHTML = html;
+            productosColeccion.innerHTML = html;
+
   coleccionCount.textContent =
     `${data.products.length} productos disponibles`;
+
+  // Aquí está la magia: si los productos tardan en llegar, el spinner se queda.
+  // Solo cuando los productos ya están en pantalla, quitamos el spinner y mostramos el contador.
+  if (productosBackend.length > 0) {
+    // Ya llegaron los productos
+    if (spinnerColeccion) spinnerColeccion.style.display = 'none';
+    if (productosColeccion) productosColeccion.style.display = 'grid';
+    if (coleccionCount) coleccionCount.style.display = 'inline';
+  } else {
+    // Aún no llegan, esperar hasta que lleguen
+        let intentos = 0;
+    const esperar = setInterval(function() {
+      intentos++;
+      if (productosBackend.length > 0 || intentos > 100) { // 35 segundos máximo
+        clearInterval(esperar);
+        
+        // Actualizar el texto del contador con el número real de productos
+        if (coleccionCount) {
+          coleccionCount.textContent = `${data.products.length} productos disponibles`;
+        }
+
+        if (spinnerColeccion) spinnerColeccion.style.display = 'none';
+        if (productosColeccion) productosColeccion.style.display = 'grid';
+        if (coleccionCount) {
+          coleccionCount.style.display = 'inline';
+        }
+      }
+    }, 100);
+  }
+
 
   if (esPropietaria) {
   productosColeccion
@@ -1157,7 +1202,7 @@ if (fichaEyebrow) {
         fichaPrecioExtranjero.textContent = `${productData.precioExtranjero} USD / EUR`;
         fichaFormato.textContent = productData.formato || 'Digital';
 
-        if (productData.idImagenPreview) {
+      if (productData.idImagenPreview) {
   fichaIcono.innerHTML = `
   <img
     src="https://lh3.googleusercontent.com/d/${encodeURIComponent(productData.idImagenPreview)}=w600"
@@ -1170,7 +1215,7 @@ if (fichaEyebrow) {
   >
 `;
 }
-        else {
+else {
           fichaIcono.innerHTML = productData.icon || '📦';
         }
 
@@ -1180,7 +1225,7 @@ if (fichaEyebrow) {
 }
 
   lastFocusedElement = document.activeElement;
-  abrirModal(modalColeccionOverlay);
+
 }
 
 
@@ -2845,7 +2890,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
-  
+
+
   console.log('Zona Total Servicios — Página funcionando correctamente.');
   console.log('Novedades activas:', novedades.filter(item => item.nueva === true).length);
   
