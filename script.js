@@ -984,7 +984,7 @@ data.products.forEach(product => {
     product.idImagenPreview
       ? `
         <img
-          src="https://drive.google.com/thumbnail?id=${encodeURIComponent(product.idImagenPreview)}&sz=w800"
+          src="https://drive.google.com/thumbnail?id=${encodeURIComponent(product.idImagenPreview)}&sz=w400"
           alt="${product.name}"
           loading="lazy"
           decoding="async"
