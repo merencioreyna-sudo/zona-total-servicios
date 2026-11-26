@@ -1094,9 +1094,12 @@ if (productData.idImagenPreview) {
       src="https://drive.google.com/thumbnail?id=${encodeURIComponent(productData.idImagenPreview)}&sz=w1000"
       alt="${productData.name}"
       class="ficha-plantilla-preview-img"
+      style="cursor: zoom-in;"
+      onclick="abrirVisorImagen(this.src)"
     >
   `;
-} else {
+}
+else {
   fichaIcono.innerHTML = '📄';
 }
 
@@ -1156,14 +1159,17 @@ if (fichaEyebrow) {
         fichaFormato.textContent = productData.formato || 'Digital';
 
         if (productData.idImagenPreview) {
-          fichaIcono.innerHTML = `
-            <img
-              src="https://drive.google.com/thumbnail?id=${encodeURIComponent(productData.idImagenPreview)}&sz=w1000"
-              alt="${productData.name}"
-              class="ficha-plantilla-preview-img"
-            >
-          `;
-        } else {
+  fichaIcono.innerHTML = `
+    <img
+      src="https://drive.google.com/thumbnail?id=${encodeURIComponent(productData.idImagenPreview)}&sz=w1000"
+      alt="${productData.name}"
+      class="ficha-plantilla-preview-img"
+      style="cursor: zoom-in;"
+      onclick="abrirVisorImagen(this.src)"
+    >
+  `;
+}
+        else {
           fichaIcono.innerHTML = productData.icon || '📦';
         }
 
@@ -2817,6 +2823,28 @@ if (botonHomeParaClick) {
   botonHomeParaClick.addEventListener('click', interceptarClickHome);
 }
 
+// FUNCIÓN PARA ABRIR EL VISOR DE IMAGEN
+window.abrirVisorImagen = function(src) {
+  const overlay = document.getElementById('visorImagenOverlay');
+  const img = document.getElementById('visorImagen');
+  if (overlay && img && src) {
+    img.src = src;
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+// CERRAR EL VISOR AL HACER CLIC
+document.addEventListener('DOMContentLoaded', function() {
+  const overlay = document.getElementById('visorImagenOverlay');
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      this.style.display = 'none';
+      document.body.style.overflow = '';
+    });
+  }
+});
+  
   console.log('Zona Total Servicios — Página funcionando correctamente.');
   console.log('Novedades activas:', novedades.filter(item => item.nueva === true).length);
   
