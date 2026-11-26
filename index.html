@@ -940,6 +940,27 @@
     </div>
   </div>
 
+<!-- VISOR DE IMAGEN AMPLIADA (LIGHTBOX) -->
+<div id="visorImagenOverlay" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(0,0,0,0.85);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  cursor: zoom-out;
+">
+  <img id="visorImagen" src="" alt="Vista ampliada" style="
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  ">
+</div>
+  
   <script src="script.js"></script>
 </body>
 </html>
